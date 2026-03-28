@@ -100,6 +100,9 @@
   .historico-item .h-meta { font-size: 12px; color: var(--text-muted); }
   .historico-item .h-valor { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--green); letter-spacing: 1px; }
   .historico-item .h-valor.desconto { color: var(--gold); }
+  .historico-main { display:flex; align-items:center; justify-content:space-between; width:100%; gap:10px; }
+  .btn-del-reg { background: rgba(224,82,82,0.1); color: var(--red); border: 1px solid rgba(224,82,82,0.25); border-radius: 8px; padding: 6px 10px; font-size: 11px; cursor: pointer; font-family: inherit; }
+  .btn-del-reg:hover { background: rgba(224,82,82,0.2); }
   .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
   .badge-pix { background: rgba(82,192,122,0.15); color: var(--green); }
   .badge-dinheiro { background: rgba(201,168,76,0.15); color: var(--gold); }
@@ -736,7 +739,8 @@ window.confirmarRegistro = async function() {
     desconto: desconto,
     valorFinal: valorFinal,
     pagamento: selectedPgto,
-    porcentagem: userData.porcentagem || 100,
+    porcentagem: userData.role === 'admin' ? 100 : (userData.porcentagem || 100),
+    isOwnerCut: userData.role === 'admin',
     timestamp: Timestamp.now(),
     data: new Date().toISOString().split('T')[0]
   };
@@ -754,8 +758,8 @@ async function loadHistoricoBarbeiro() {
   const hoje = new Date().toISOString().split('T')[0];
   const q = query(collection(db, 'registros'), where('barbeiroId','==',currentUser.uid), where('data','==',hoje), orderBy('timestamp','desc'));
   const snap = await getDocs(q);
-  const registros = snap.docs.map(d => d.data());
-  renderHistorico('historico-barbeiro', registros);
+  const registros = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderHistorico('historico-barbeiro', registros, true);
   calcStatsBarbeiro(registros);
 }
 
@@ -770,7 +774,7 @@ function calcStatsBarbeiro(registros) {
   document.getElementById('stat-desc-b').textContent = `R$ ${desc.toFixed(2).replace('.',',')}`;
 }
 
-function renderHistorico(containerId, registros) {
+function renderHistorico(containerId, registros, canDelete = false) {
   const el = document.getElementById(containerId);
   if (!registros.length) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">✂️</div>Nenhum serviço ainda</div>';
@@ -780,24 +784,44 @@ function renderHistorico(containerId, registros) {
     const hora = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) : '--:--';
     const temDesc = r.desconto > 0;
     const badgeClass = {'Pix':'badge-pix','Dinheiro':'badge-dinheiro','Crédito':'badge-credito','Débito':'badge-debito'}[r.pagamento] || '';
+    const deleteBtn = canDelete && r.id ? `<button class="btn-del-reg" onclick="deleteRegistro('${r.id}')">Apagar</button>` : '';
     return `
       <div class="historico-item">
-        <div class="h-info">
-          <div class="h-nome">${r.servicoNome}</div>
-          <div class="h-meta">${hora} &nbsp;·&nbsp; <span class="badge ${badgeClass}">${r.pagamento}</span>${temDesc ? ` &nbsp;·&nbsp; <span style="color:var(--red);font-size:11px">-R$ ${r.desconto.toFixed(2).replace('.',',')}</span>` : ''}</div>
+        <div class="historico-main">
+          <div class="h-info">
+            <div class="h-nome">${r.servicoNome}</div>
+            <div class="h-meta">${hora} &nbsp;·&nbsp; <span class="badge ${badgeClass}">${r.pagamento}</span>${temDesc ? ` &nbsp;·&nbsp; <span style="color:var(--red);font-size:11px">-R$ ${r.desconto.toFixed(2).replace('.',',')}</span>` : ''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="h-valor ${temDesc?'desconto':''}">R$ ${r.valorFinal.toFixed(2).replace('.',',')}</div>
+            ${deleteBtn}
+          </div>
         </div>
-        <div class="h-valor ${temDesc?'desconto':''}">R$ ${r.valorFinal.toFixed(2).replace('.',',')}</div>
       </div>`;
   }).join('');
 }
+
+
+window.deleteRegistro = async function(id) {
+  if (!id) return;
+  if (!confirm('Apagar este corte já registrado? Esta ação não pode ser desfeita.')) return;
+  try {
+    await deleteDoc(doc(db, 'registros', id));
+    showToast('🗑️ Corte apagado com sucesso');
+    if (currentUserData.role === 'admin') loadHistoricoAdmin();
+    else loadHistoricoBarbeiro();
+  } catch (e) {
+    showToast('Erro ao apagar corte. Tente novamente.');
+  }
+};
 
 // ── HISTÓRICO ADMIN PRÓPRIO ──
 async function loadHistoricoAdmin() {
   const hoje = new Date().toISOString().split('T')[0];
   const q = query(collection(db, 'registros'), where('barbeiroId','==',currentUser.uid), where('data','==',hoje), orderBy('timestamp','desc'));
   const snap = await getDocs(q);
-  const registros = snap.docs.map(d => d.data());
-  renderHistorico('historico-admin-proprio', registros);
+  const registros = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderHistorico('historico-admin-proprio', registros, true);
   const bruto = registros.reduce((a,r) => a + r.valorFinal, 0);
   document.getElementById('stat-admin-bruto').textContent = `R$ ${bruto.toFixed(2).replace('.',',')}`;
   document.getElementById('stat-admin-qtd').textContent = registros.length;
@@ -961,7 +985,7 @@ window.loadDashboard = async function() {
   let bolso = 0;
   registros.forEach(r => {
     const pct = r.porcentagem || 0;
-    bolso += r.valorFinal * ((100 - pct) / 100);
+    bolso += r.isOwnerCut ? r.valorFinal : (r.valorFinal * ((100 - pct) / 100));
   });
   document.getElementById('dash-bolso').textContent = `R$ ${bolso.toFixed(2).replace('.',',')}`;
 
@@ -977,7 +1001,7 @@ window.loadDashboard = async function() {
   const entries = Object.values(porBarbeiro);
   if (!entries.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Nenhum serviço nesta data</div>'; return; }
   list.innerHTML = entries.sort((a,b) => b.total - a.total).map(b => {
-    const liquido = b.total * (b.pct / 100);
+    const liquido = b.pct === 100 && b.nome?.toLowerCase().includes('william') ? b.total : (b.total * (b.pct / 100));
     const william = b.total - liquido;
     return `
       <div class="relatorio-barbeiro">
@@ -1024,7 +1048,7 @@ window.loadRelatorio = async function() {
 
   const totalGeral = registros.reduce((a,r) => a+r.valorFinal, 0);
   let bolsoWilliam = 0;
-  registros.forEach(r => { bolsoWilliam += r.valorFinal * ((100 - (r.porcentagem||0)) / 100); });
+  registros.forEach(r => { bolsoWilliam += r.isOwnerCut ? r.valorFinal : (r.valorFinal * ((100 - (r.porcentagem||0)) / 100)); });
 
   const content = document.getElementById('relatorio-content');
   const entries = Object.values(porBarbeiro);
@@ -1044,7 +1068,7 @@ window.loadRelatorio = async function() {
     html += '<div class="empty"><div class="empty-icon">📊</div>Nenhum registro no período</div>';
   } else {
     html += entries.sort((a,b) => b.total - a.total).map(b => {
-      const liquido = b.total * (b.pct / 100);
+      const liquido = b.pct === 100 && b.nome?.toLowerCase().includes('william') ? b.total : (b.total * (b.pct / 100));
       const william = b.total - liquido;
       return `
         <div class="relatorio-barbeiro">
