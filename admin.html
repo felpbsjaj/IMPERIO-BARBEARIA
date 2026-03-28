@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Império · Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e; --border: #2a2a2a;
+    --gold: #c9a84c; --gold-light: #e8c97a; --gold-dim: rgba(201,168,76,0.15);
+    --text: #f0ece4; --text-muted: #6b6560; --text-dim: #9b9590;
+    --red: #e05252; --green: #52c07a; --blue: #5289e0;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+
+  #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 16px; }
+  #loading h1 { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 4px; color: var(--gold); }
+  #loading p { color: var(--text-muted); font-size: 14px; }
+  .spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #auth-screen { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 24px; flex-direction: column; gap: 32px; }
+  .auth-logo { text-align: center; }
+  .auth-logo h1 { font-family: 'Bebas Neue', sans-serif; font-size: 56px; letter-spacing: 6px; color: var(--gold); line-height: 1; }
+  .auth-logo p { color: var(--text-muted); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; }
+  .auth-card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .field input, .field select { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-family: inherit; font-size: 15px; outline: none; transition: border-color 0.2s; width: 100%; }
+  .field input:focus, .field select:focus { border-color: var(--gold); }
+  .btn-gold { background: var(--gold); color: #0a0a0a; border: none; border-radius: var(--radius-sm); padding: 14px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; width: 100%; }
+  .btn-gold:hover { background: var(--gold-light); }
+  .auth-error { color: var(--red); font-size: 13px; text-align: center; display: none; }
+  .auth-hint { color: var(--text-muted); font-size: 12px; text-align: center; }
+
+  /* APP */
+  #app { display: none; flex-direction: column; min-height: 100vh; }
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header-logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--gold); }
+  .header-badge { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); border-radius: 20px; font-size: 11px; padding: 3px 10px; letter-spacing: 1px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .header-user { font-size: 13px; color: var(--text-muted); }
+  .btn-icon { background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text-muted); cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.2s; }
+  .btn-icon:hover { border-color: var(--gold); color: var(--gold); }
+
+  .nav-tabs { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; overflow-x: auto; scrollbar-width: none; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { padding: 14px 20px; font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1.5px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .nav-tab:hover:not(.active) { color: var(--text-dim); }
+
+  .content { flex: 1; padding: 20px; max-width: 900px; margin: 0 auto; width: 100%; }
+  .tab-page { display: none; }
+  .tab-page.active { display: block; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .card-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1.5px; color: var(--gold); margin-bottom: 16px; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; }
+  .stat-value.gold { color: var(--gold); }
+  .stat-value.green { color: var(--green); }
+
+  /* Serviços */
+  .servicos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  @media(min-width: 480px) { .servicos-grid { grid-template-columns: repeat(3, 1fr); } }
+  .servico-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 12px; cursor: pointer; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; gap: 4px; }
+  .servico-btn:hover { border-color: var(--gold); background: var(--gold-dim); }
+  .s-nome { font-size: 13px; font-weight: 500; color: var(--text); }
+  .s-valor { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); }
+
+  /* Histórico */
+  .historico-list { display: flex; flex-direction: column; gap: 8px; }
+  .historico-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .h-nome { font-size: 14px; font-weight: 500; }
+  .h-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .h-valor { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--green); }
+  .h-valor.tem-desc { color: var(--gold); }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .badge-Pix { background: rgba(82,192,122,0.15); color: var(--green); }
+  .badge-Dinheiro { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .badge-Crédito { background: rgba(82,137,224,0.15); color: var(--blue); }
+  .badge-Débito { background: rgba(82,137,224,0.1); color: #7aaae8; }
+
+  /* Dashboard */
+  .bolso-card { background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.05)); border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; text-align: center; }
+  .bolso-label { font-size: 12px; color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+  .bolso-valor { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: var(--gold); letter-spacing: 2px; }
+  .sede-resumo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .sede-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .sede-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--gold); margin-bottom: 8px; }
+  .sede-total { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--green); }
+  .sede-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  .relatorio-barbeiro { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; }
+  .rb-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .rb-nome { font-weight: 600; font-size: 15px; }
+  .rb-sede { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .rb-total { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--green); }
+  .rb-breakdown { display: flex; gap: 16px; flex-wrap: wrap; }
+  .rb-item { font-size: 12px; color: var(--text-muted); }
+  .rb-item span { color: var(--text-dim); font-weight: 500; }
+
+  .date-filter { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .date-filter input[type=date] { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text); font-family: inherit; font-size: 14px; outline: none; }
+  .filter-btn { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius-sm); padding: 8px 16px; cursor: pointer; font-size: 13px; font-family: inherit; }
+
+  .inner-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .inner-tab { padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-muted); transition: all 0.2s; font-family: inherit; }
+  .inner-tab.active { background: var(--gold-dim); border-color: rgba(201,168,76,0.4); color: var(--gold); }
+
+  /* Admin gestão */
+  .admin-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  @media(min-width: 600px) { .admin-grid { grid-template-columns: repeat(3, 1fr); } }
+  .admin-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .admin-item-name { font-size: 14px; font-weight: 500; }
+  .admin-item-meta { font-size: 12px; color: var(--text-muted); }
+  .admin-item-actions { display: flex; gap: 6px; margin-top: 4px; }
+  .btn-sm { padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+  .btn-edit { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+  .btn-del { background: rgba(224,82,82,0.1); color: var(--red); border: 1px solid rgba(224,82,82,0.2); }
+  .btn-add { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius-sm); padding: 10px 16px; cursor: pointer; font-size: 13px; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .section-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; display: none; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; padding: 28px 24px 40px; display: flex; flex-direction: column; gap: 20px; max-height: 92vh; overflow-y: auto; animation: slideUp 0.25s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: -12px auto 0; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--gold); text-align: center; }
+
+  .modal-servico-preview { background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius); padding: 16px; text-align: center; }
+  .ms-nome { font-size: 14px; color: var(--text-muted); margin-bottom: 4px; }
+  .ms-valor { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--gold); }
+
+  .pgto-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .pgto-btn { background: var(--surface2); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 12px; cursor: pointer; text-align: center; font-size: 14px; font-weight: 500; color: var(--text); transition: all 0.2s; }
+  .pgto-btn.selected { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
+
+  .desconto-toggle { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 12px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .desconto-toggle span { font-size: 14px; color: var(--text-dim); }
+  .desconto-fields { display: none; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .desconto-fields.open { display: flex; }
+  .desconto-type { display: flex; gap: 8px; }
+  .desconto-type button { flex: 1; padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.2s; }
+  .desconto-type button.active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+
+  .valor-final { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--bg); border-radius: var(--radius-sm); }
+  .valor-final span { font-size: 13px; color: var(--text-muted); }
+  .vf-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--green); }
+
+  .btn-registrar { background: var(--gold); color: #0a0a0a; border: none; border-radius: var(--radius-sm); padding: 16px; font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; width: 100%; }
+  .btn-registrar:hover { background: var(--gold-light); }
+  .btn-registrar:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+  .btn-cancel { background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; font-family: inherit; font-size: 14px; color: var(--text-muted); cursor: pointer; width: 100%; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .bolso-periodo { background: linear-gradient(135deg, rgba(82,192,122,0.08), rgba(82,192,122,0.03)); border: 1px solid rgba(82,192,122,0.25); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; text-align: center; }
+  .bolso-periodo .bp-label { font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+  .bolso-periodo .bp-valor { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: var(--green); }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface); border: 1px solid var(--gold); border-radius: 30px; padding: 12px 24px; font-size: 14px; color: var(--gold); z-index: 9999; transition: transform 0.3s; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .field input[type=number] { -moz-appearance: textfield; }
+  .field input[type=number]::-webkit-outer-spin-button,
+  .field input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <h1>IMPÉRIO</h1>
+  <div class="spinner"></div>
+  <p>Carregando painel admin...</p>
+</div>
+
+<div id="auth-screen">
+  <div class="auth-logo">
+    <h1>IMPÉRIO</h1>
+    <p>Painel Administrativo</p>
+  </div>
+  <div class="auth-card">
+    <h2>Acesso Admin</h2>
+    <div class="field">
+      <label>E-mail</label>
+      <input type="email" id="auth-email" placeholder="seu@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <p class="auth-error" id="auth-error"></p>
+    <button class="btn-gold" onclick="doLogin()">ENTRAR</button>
+    <p class="auth-hint">Acesso restrito ao administrador</p>
+  </div>
+</div>
+
+<div id="app">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="header-logo">IMPÉRIO</span>
+      <span class="header-badge">ADMIN</span>
+    </div>
+    <div class="header-right">
+      <span class="header-user" id="header-user-name"></span>
+      <button class="btn-icon" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs" id="main-nav">
+    <div class="nav-tab active" data-tab="tab-meus-cortes">Meus Cortes</div>
+    <div class="nav-tab" data-tab="tab-dashboard">Dashboard</div>
+    <div class="nav-tab" data-tab="tab-relatorios">Relatórios</div>
+    <div class="nav-tab" data-tab="tab-barbeiros">Barbeiros</div>
+    <div class="nav-tab" data-tab="tab-servicos">Serviços</div>
+  </div>
+
+  <div class="content">
+
+    <!-- MEUS CORTES -->
+    <div id="tab-meus-cortes" class="tab-page active">
+      <div class="card">
+        <div class="card-title">✂️ Registrar Serviço</div>
+        <div class="servicos-grid" id="grid-meus-cortes"></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Meus Cortes Hoje</div>
+          <div class="stat-value gold" id="mc-total">R$ 0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Serviços</div>
+          <div class="stat-value" id="mc-qtd">0</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 Histórico de Hoje</div>
+        <div class="historico-list" id="mc-historico">
+          <div class="empty"><div class="empty-icon">✂️</div>Nenhum serviço hoje ainda</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="tab-page">
+      <div class="date-filter">
+        <input type="date" id="dash-date">
+        <button class="filter-btn" onclick="loadDashboard()">Filtrar</button>
+        <button class="filter-btn" onclick="document.getElementById('dash-date').value=hoje();loadDashboard()">Hoje</button>
+      </div>
+      <div class="bolso-card">
+        <div class="bolso-label">💰 No seu bolso</div>
+        <div class="bolso-valor" id="dash-bolso">R$ 0</div>
+      </div>
+      <div class="sede-resumo">
+        <div class="sede-card">
+          <h3>Sede 1</h3>
+          <div class="sede-total" id="dash-s1">R$ 0</div>
+          <div class="sede-meta" id="dash-s1-qt">0 serviços</div>
+        </div>
+        <div class="sede-card">
+          <h3>Sede 2</h3>
+          <div class="sede-total" id="dash-s2">R$ 0</div>
+          <div class="sede-meta" id="dash-s2-qt">0 serviços</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">👥 Por Barbeiro</div>
+        <div id="dash-lista"></div>
+      </div>
+    </div>
+
+    <!-- RELATÓRIOS -->
+    <div id="tab-relatorios" class="tab-page">
+      <div class="date-filter">
+        <input type="date" id="rel-ini">
+        <span style="color:var(--text-muted);font-size:13px">até</span>
+        <input type="date" id="rel-fim">
+        <button class="filter-btn" onclick="loadRelatorio()">Filtrar</button>
+      </div>
+      <div class="inner-tabs">
+        <button class="inner-tab active" onclick="setRelView('geral',this)">Geral</button>
+        <button class="inner-tab" onclick="setRelView('Sede 1',this)">Sede 1</button>
+        <button class="inner-tab" onclick="setRelView('Sede 2',this)">Sede 2</button>
+      </div>
+      <div id="rel-content"></div>
+    </div>
+
+    <!-- BARBEIROS -->
+    <div id="tab-barbeiros" class="tab-page">
+      <div class="section-header">
+        <span class="section-label">Barbeiros Cadastrados</span>
+        <button class="btn-add" onclick="abrirModalBarbeiro()">+ Adicionar</button>
+      </div>
+      <div class="admin-grid" id="lista-barbeiros"></div>
+    </div>
+
+    <!-- SERVIÇOS -->
+    <div id="tab-servicos" class="tab-page">
+      <div class="section-header">
+        <span class="section-label">Tabela de Preços</span>
+        <button class="btn-add" onclick="abrirModalServico()">+ Adicionar</button>
+      </div>
+      <div class="admin-grid" id="lista-servicos"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL REGISTRO -->
+<div class="modal-overlay" id="modal-registro">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">REGISTRAR SERVIÇO</div>
+    <div class="modal-servico-preview">
+      <div class="ms-nome" id="reg-nome">—</div>
+      <div class="ms-valor" id="reg-valor">R$ 0</div>
+    </div>
+    <div>
+      <div class="section-label" style="margin-bottom:10px">Forma de Pagamento</div>
+      <div class="pgto-grid">
+        <div class="pgto-btn" onclick="selecionarPgto('Pix',this)">💚 Pix</div>
+        <div class="pgto-btn" onclick="selecionarPgto('Dinheiro',this)">💵 Dinheiro</div>
+        <div class="pgto-btn" onclick="selecionarPgto('Crédito',this)">💳 Crédito</div>
+        <div class="pgto-btn" onclick="selecionarPgto('Débito',this)">🏦 Débito</div>
+      </div>
+    </div>
+    <div>
+      <div class="desconto-toggle" onclick="toggleDesc()">
+        <span>🏷️ Adicionar desconto (opcional)</span>
+        <span id="desc-icon">+</span>
+      </div>
+      <div class="desconto-fields" id="desc-fields">
+        <div class="desconto-type">
+          <button class="active" id="btn-reais" onclick="setDescTipo('reais')">R$ Reais</button>
+          <button id="btn-pct" onclick="setDescTipo('pct')">% Porcentagem</button>
+        </div>
+        <div class="field">
+          <label id="desc-label">Valor do Desconto (R$)</label>
+          <input type="number" id="desc-val" placeholder="0" min="0" oninput="atualizarFinal()">
+        </div>
+      </div>
+    </div>
+    <div class="valor-final">
+      <span>Valor Final</span>
+      <span class="vf-num" id="valor-final">R$ 0</span>
+    </div>
+    <button class="btn-registrar" id="btn-confirmar" onclick="confirmarRegistro()" disabled>REGISTRAR</button>
+    <button class="btn-cancel" onclick="fecharModal('modal-registro')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL BARBEIRO -->
+<div class="modal-overlay" id="modal-barbeiro">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="barb-modal-title">NOVO BARBEIRO</div>
+    <input type="hidden" id="barb-id">
+    <div class="field"><label>Nome</label><input type="text" id="barb-nome" placeholder="Nome completo"></div>
+    <div class="field"><label>E-mail (login)</label><input type="email" id="barb-email" placeholder="barbeiro@email.com"></div>
+    <div class="field" id="barb-senha-row"><label>Senha inicial</label><input type="password" id="barb-senha" placeholder="Mínimo 6 caracteres"></div>
+    <div class="form-row">
+      <div class="field">
+        <label>Sede</label>
+        <select id="barb-sede">
+          <option value="Sede 1">Sede 1</option>
+          <option value="Sede 2">Sede 2</option>
+        </select>
+      </div>
+      <div class="field"><label>% do Barbeiro</label><input type="number" id="barb-pct" placeholder="60" min="0" max="100"></div>
+    </div>
+    <button class="btn-registrar" onclick="salvarBarbeiro()">SALVAR</button>
+    <button class="btn-cancel" onclick="fecharModal('modal-barbeiro')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL SERVIÇO -->
+<div class="modal-overlay" id="modal-servico">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="srv-modal-title">NOVO SERVIÇO</div>
+    <input type="hidden" id="srv-id">
+    <div class="field"><label>Nome do Serviço</label><input type="text" id="srv-nome" placeholder="Ex: Corte + Barba"></div>
+    <div class="field"><label>Valor (R$)</label><input type="number" id="srv-valor" placeholder="50" min="0"></div>
+    <button class="btn-registrar" onclick="salvarServico()">SALVAR</button>
+    <button class="btn-cancel" onclick="fecharModal('modal-servico')">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA7ISbwf_RCg_3IRTOboeV1Y9W4_wf8HY4",
+  authDomain: "barb-imperio.firebaseapp.com",
+  projectId: "barb-imperio",
+  storageBucket: "barb-imperio.firebasestorage.app",
+  messagingSenderId: "1011188015253",
+  appId: "1:1011188015253:web:bc824812e8ac6628017b9c"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+
+let currentUser = null;
+let userData = null;
+let servicos = [];
+let barbeiros = [];
+let servicoSelecionado = null;
+let pgtoSelecionado = null;
+let descOpen = false;
+let descTipo = 'reais';
+let relViewAtual = 'geral';
+
+// ── HELPERS ──
+window.hoje = () => new Date().toISOString().split('T')[0];
+window.fmt = (v) => `R$ ${parseFloat(v).toFixed(2).replace('.',',')}`;
+window.toast = (msg) => { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); };
+window.fecharModal = (id) => document.getElementById(id).classList.remove('open');
+
+// ── AUTH ──
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { mostrarAuth(); return; }
+  const snap = await getDoc(doc(db, 'usuarios', user.uid));
+  if (!snap.exists() || snap.data().role !== 'admin') {
+    await signOut(auth);
+    mostrarAuth();
+    document.getElementById('auth-error').textContent = 'Acesso negado. Use o painel de funcionários.';
+    document.getElementById('auth-error').style.display = 'block';
+    return;
+  }
+  currentUser = user;
+  userData = snap.data();
+  iniciarApp();
+});
+
+function mostrarAuth() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+async function iniciarApp() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('header-user-name').textContent = userData.nome || 'Admin';
+
+  // Nav tabs
+  document.querySelectorAll('#main-nav .nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#main-nav .nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const target = document.getElementById(tab.dataset.tab);
+      if (target) target.classList.add('active');
+      const t = tab.dataset.tab;
+      if (t === 'tab-meus-cortes') carregarMeusCortes();
+      if (t === 'tab-dashboard') { document.getElementById('dash-date').value = hoje(); loadDashboard(); }
+      if (t === 'tab-relatorios') iniciarRelatorio();
+      if (t === 'tab-barbeiros') renderBarbeiros();
+      if (t === 'tab-servicos') renderServicos();
+    });
+  });
+
+  await carregarServicos();
+  await carregarBarbeiros();
+  carregarMeusCortes();
+  document.getElementById('dash-date').value = hoje();
+}
+
+window.doLogin = async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  const err = document.getElementById('auth-error');
+  err.style.display = 'none';
+  try { await signInWithEmailAndPassword(auth, email, pass); }
+  catch(e) { err.textContent = 'E-mail ou senha incorretos.'; err.style.display = 'block'; }
+};
+window.doLogout = () => signOut(auth);
+
+// ── SERVIÇOS ──
+async function carregarServicos() {
+  const snap = await getDocs(query(collection(db, 'servicos'), orderBy('nome')));
+  servicos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderGridServicos('grid-meus-cortes');
+}
+
+function renderGridServicos(gridId) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  if (!servicos.length) {
+    grid.innerHTML = '<p style="color:var(--text-muted);font-size:13px;grid-column:1/-1;padding:12px 0">Nenhum serviço cadastrado. Adicione na aba Serviços.</p>';
+    return;
+  }
+  grid.innerHTML = servicos.map(s => `
+    <div class="servico-btn" onclick="abrirRegistro('${s.id}')">
+      <span class="s-nome">${s.nome}</span>
+      <span class="s-valor">R$ ${s.valor}</span>
+    </div>`).join('');
+}
+
+// ── REGISTRO ──
+window.abrirRegistro = (id) => {
+  servicoSelecionado = servicos.find(s => s.id === id);
+  if (!servicoSelecionado) return;
+  pgtoSelecionado = null;
+  descOpen = false; descTipo = 'reais';
+  document.getElementById('reg-nome').textContent = servicoSelecionado.nome;
+  document.getElementById('reg-valor').textContent = `R$ ${servicoSelecionado.valor}`;
+  document.getElementById('valor-final').textContent = `R$ ${servicoSelecionado.valor}`;
+  document.getElementById('desc-val').value = '';
+  document.getElementById('desc-fields').classList.remove('open');
+  document.getElementById('desc-icon').textContent = '+';
+  document.getElementById('btn-confirmar').disabled = true;
+  document.querySelectorAll('.pgto-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('modal-registro').classList.add('open');
+};
+
+window.selecionarPgto = (pgto, el) => {
+  pgtoSelecionado = pgto;
+  document.querySelectorAll('.pgto-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('btn-confirmar').disabled = false;
+};
+
+window.toggleDesc = () => {
+  descOpen = !descOpen;
+  document.getElementById('desc-fields').classList.toggle('open', descOpen);
+  document.getElementById('desc-icon').textContent = descOpen ? '−' : '+';
+  if (!descOpen) { document.getElementById('desc-val').value = ''; atualizarFinal(); }
+};
+
+window.setDescTipo = (tipo) => {
+  descTipo = tipo;
+  document.getElementById('btn-reais').classList.toggle('active', tipo === 'reais');
+  document.getElementById('btn-pct').classList.toggle('active', tipo === 'pct');
+  document.getElementById('desc-label').textContent = tipo === 'reais' ? 'Valor do Desconto (R$)' : 'Desconto (%)';
+  atualizarFinal();
+};
+
+window.atualizarFinal = () => {
+  if (!servicoSelecionado) return;
+  const base = parseFloat(servicoSelecionado.valor) || 0;
+  const inp = parseFloat(document.getElementById('desc-val').value) || 0;
+  let desc = 0;
+  if (descOpen && inp > 0) desc = Math.min(descTipo === 'pct' ? base * inp / 100 : inp, base);
+  document.getElementById('valor-final').textContent = fmt(base - desc);
+};
+
+window.confirmarRegistro = async () => {
+  if (!servicoSelecionado || !pgtoSelecionado) return;
+  const base = parseFloat(servicoSelecionado.valor) || 0;
+  const inp = parseFloat(document.getElementById('desc-val').value) || 0;
+  let desc = 0;
+  if (descOpen && inp > 0) desc = Math.min(descTipo === 'pct' ? base * inp / 100 : inp, base);
+  const valorFinal = parseFloat((base - desc).toFixed(2));
+
+  await addDoc(collection(db, 'registros'), {
+    barbeiroId: currentUser.uid,
+    barbeiroNome: userData.nome,
+    sede: 'Admin',
+    servicoId: servicoSelecionado.id,
+    servicoNome: servicoSelecionado.nome,
+    valorTabela: base,
+    desconto: desc,
+    valorFinal,
+    pagamento: pgtoSelecionado,
+    porcentagem: 100,
+    timestamp: Timestamp.now(),
+    data: hoje()
+  });
+
+  fecharModal('modal-registro');
+  toast(`✅ ${servicoSelecionado.nome} — ${fmt(valorFinal)} registrado!`);
+  carregarMeusCortes();
+};
+
+// ── MEUS CORTES ──
+async function carregarMeusCortes() {
+  const q = query(collection(db, 'registros'), where('barbeiroId','==',currentUser.uid), where('data','==',hoje()), orderBy('timestamp','desc'));
+  const snap = await getDocs(q);
+  const regs = snap.docs.map(d => d.data());
+  const total = regs.reduce((a,r) => a+r.valorFinal, 0);
+  document.getElementById('mc-total').textContent = fmt(total);
+  document.getElementById('mc-qtd').textContent = regs.length;
+  const hist = document.getElementById('mc-historico');
+  if (!regs.length) { hist.innerHTML = '<div class="empty"><div class="empty-icon">✂️</div>Nenhum serviço hoje ainda</div>'; return; }
+  hist.innerHTML = regs.map(r => itemHistorico(r)).join('');
+}
+
+function itemHistorico(r) {
+  const hora = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+  const temDesc = r.desconto > 0;
+  return `<div class="historico-item">
+    <div>
+      <div class="h-nome">${r.servicoNome}</div>
+      <div class="h-meta">${hora} · <span class="badge badge-${r.pagamento}">${r.pagamento}</span>${temDesc ? ` · <span style="color:var(--red);font-size:11px">-${fmt(r.desconto)}</span>` : ''}</div>
+    </div>
+    <div class="h-valor ${temDesc?'tem-desc':''}">${fmt(r.valorFinal)}</div>
+  </div>`;
+}
+
+// ── DASHBOARD ──
+window.loadDashboard = async () => {
+  const data = document.getElementById('dash-date').value;
+  if (!data) return;
+  const snap = await getDocs(query(collection(db, 'registros'), where('data','==',data)));
+  const regs = snap.docs.map(d => d.data());
+
+  const s1 = regs.filter(r => r.sede === 'Sede 1');
+  const s2 = regs.filter(r => r.sede === 'Sede 2');
+  document.getElementById('dash-s1').textContent = fmt(s1.reduce((a,r)=>a+r.valorFinal,0));
+  document.getElementById('dash-s2').textContent = fmt(s2.reduce((a,r)=>a+r.valorFinal,0));
+  document.getElementById('dash-s1-qt').textContent = `${s1.length} serviços`;
+  document.getElementById('dash-s2-qt').textContent = `${s2.length} serviços`;
+
+  let bolso = 0;
+  regs.forEach(r => { bolso += r.valorFinal * ((100 - (r.porcentagem||0)) / 100); });
+  document.getElementById('dash-bolso').textContent = fmt(bolso);
+
+  const por = {};
+  regs.forEach(r => {
+    if (!por[r.barbeiroId]) por[r.barbeiroId] = { nome: r.barbeiroNome, sede: r.sede, total: 0, qt: 0, pct: r.porcentagem||0 };
+    por[r.barbeiroId].total += r.valorFinal;
+    por[r.barbeiroId].qt++;
+  });
+
+  const lista = document.getElementById('dash-lista');
+  const entries = Object.values(por);
+  if (!entries.length) { lista.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Nenhum serviço nesta data</div>'; return; }
+  lista.innerHTML = entries.sort((a,b)=>b.total-a.total).map(b => {
+    const liq = b.total * b.pct / 100;
+    const will = b.total - liq;
+    return `<div class="relatorio-barbeiro">
+      <div class="rb-header">
+        <div><div class="rb-nome">${b.nome}</div><div class="rb-sede">${b.sede}</div></div>
+        <div class="rb-total">${fmt(b.total)}</div>
+      </div>
+      <div class="rb-breakdown">
+        <div class="rb-item">${b.qt} serviços</div>
+        <div class="rb-item">Barbeiro: <span>${fmt(liq)}</span></div>
+        <div class="rb-item">William: <span>${fmt(will)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+// ── RELATÓRIOS ──
+function iniciarRelatorio() {
+  const ini = new Date(); ini.setDate(1);
+  document.getElementById('rel-ini').value = ini.toISOString().split('T')[0];
+  document.getElementById('rel-fim').value = hoje();
+  loadRelatorio();
+}
+
+window.setRelView = (view, el) => {
+  relViewAtual = view;
+  document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  loadRelatorio();
+};
+
+window.loadRelatorio = async () => {
+  const ini = document.getElementById('rel-ini').value;
+  const fim = document.getElementById('rel-fim').value;
+  if (!ini || !fim) return;
+  const snap = await getDocs(query(collection(db,'registros'), where('data','>=',ini), where('data','<=',fim), orderBy('data','desc')));
+  let regs = snap.docs.map(d => d.data());
+  if (relViewAtual !== 'geral') regs = regs.filter(r => r.sede === relViewAtual);
+
+  const totalGeral = regs.reduce((a,r)=>a+r.valorFinal,0);
+  let bolso = 0;
+  regs.forEach(r => { bolso += r.valorFinal * ((100-(r.porcentagem||0))/100); });
+
+  const por = {};
+  regs.forEach(r => {
+    if (!por[r.barbeiroId]) por[r.barbeiroId] = { nome: r.barbeiroNome, sede: r.sede, total: 0, qt: 0, pct: r.porcentagem||0, desc: 0 };
+    por[r.barbeiroId].total += r.valorFinal;
+    por[r.barbeiroId].qt++;
+    por[r.barbeiroId].desc += r.desconto||0;
+  });
+
+  const entries = Object.values(por).sort((a,b)=>b.total-a.total);
+  let html = `
+    <div class="bolso-card" style="margin-bottom:16px">
+      <div class="bolso-label">📊 Faturamento Total do Período</div>
+      <div class="bolso-valor">${fmt(totalGeral)}</div>
+    </div>
+    <div class="bolso-periodo" style="margin-bottom:16px">
+      <div class="bp-label">💼 No seu bolso</div>
+      <div class="bp-valor">${fmt(bolso)}</div>
+    </div>
+  `;
+  if (!entries.length) {
+    html += '<div class="empty"><div class="empty-icon">📊</div>Nenhum registro no período</div>';
+  } else {
+    html += entries.map(b => {
+      const liq = b.total * b.pct / 100;
+      const will = b.total - liq;
+      return `<div class="relatorio-barbeiro">
+        <div class="rb-header">
+          <div><div class="rb-nome">${b.nome}</div><div class="rb-sede">${b.sede} · ${b.pct}%</div></div>
+          <div class="rb-total">${fmt(b.total)}</div>
+        </div>
+        <div class="rb-breakdown">
+          <div class="rb-item">${b.qt} serviços</div>
+          <div class="rb-item">Recebe: <span style="color:var(--green)">${fmt(liq)}</span></div>
+          <div class="rb-item">→ William: <span style="color:var(--gold)">${fmt(will)}</span></div>
+          <div class="rb-item">Descontos: <span style="color:var(--red)">${fmt(b.desc)}</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('rel-content').innerHTML = html;
+};
+
+// ── BARBEIROS ──
+async function carregarBarbeiros() {
+  const snap = await getDocs(collection(db, 'usuarios'));
+  barbeiros = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(b => b.role !== 'admin');
+}
+
+function renderBarbeiros() {
+  const lista = document.getElementById('lista-barbeiros');
+  if (!barbeiros.length) {
+    lista.innerHTML = '<p style="color:var(--text-muted);font-size:13px;grid-column:1/-1">Nenhum barbeiro cadastrado ainda.</p>';
+    return;
+  }
+  lista.innerHTML = barbeiros.map(b => `
+    <div class="admin-item">
+      <div class="admin-item-name">${b.nome}</div>
+      <div class="admin-item-meta">${b.sede||'—'} · ${b.porcentagem||0}%</div>
+      <div class="admin-item-meta" style="font-size:11px;color:var(--text-muted)">${b.email||''}</div>
+      <div class="admin-item-actions">
+        <button class="btn-sm btn-edit" onclick="abrirModalBarbeiro('${b.id}')">Editar</button>
+      </div>
+    </div>`).join('');
+}
+
+window.abrirModalBarbeiro = (id) => {
+  document.getElementById('barb-id').value = id || '';
+  document.getElementById('barb-modal-title').textContent = id ? 'EDITAR BARBEIRO' : 'NOVO BARBEIRO';
+  document.getElementById('barb-senha-row').style.display = id ? 'none' : 'flex';
+  if (id) {
+    const b = barbeiros.find(x => x.id === id);
+    document.getElementById('barb-nome').value = b.nome || '';
+    document.getElementById('barb-email').value = b.email || '';
+    document.getElementById('barb-sede').value = b.sede || 'Sede 1';
+    document.getElementById('barb-pct').value = b.porcentagem || '';
+  } else {
+    ['barb-nome','barb-email','barb-senha','barb-pct'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('barb-sede').value = 'Sede 1';
+  }
+  document.getElementById('modal-barbeiro').classList.add('open');
+};
+
+window.salvarBarbeiro = async () => {
+  const id = document.getElementById('barb-id').value;
+  const nome = document.getElementById('barb-nome').value.trim();
+  const email = document.getElementById('barb-email').value.trim();
+  const sede = document.getElementById('barb-sede').value;
+  const pct = parseFloat(document.getElementById('barb-pct').value) || 0;
+  if (!nome || !email) return toast('⚠️ Preencha nome e e-mail');
+
+  if (id) {
+    await updateDoc(doc(db, 'usuarios', id), { nome, email, sede, porcentagem: pct });
+    toast('✅ Barbeiro atualizado!');
+  } else {
+    const senha = document.getElementById('barb-senha').value;
+    if (!senha || senha.length < 6) return toast('⚠️ Senha mínimo 6 caracteres');
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, senha);
+      await setDoc(doc(db, 'usuarios', cred.user.uid), { nome, email, sede, porcentagem: pct, role: 'barbeiro' });
+      toast('✅ Barbeiro criado! Você será deslogado para relogar.');
+      setTimeout(() => signOut(auth), 2000);
+      fecharModal('modal-barbeiro');
+      return;
+    } catch(e) { return toast('Erro: ' + e.message); }
+  }
+
+  await carregarBarbeiros();
+  renderBarbeiros();
+  fecharModal('modal-barbeiro');
+};
+
+// ── SERVIÇOS GESTÃO ──
+function renderServicos() {
+  const lista = document.getElementById('lista-servicos');
+  if (!servicos.length) {
+    lista.innerHTML = '<p style="color:var(--text-muted);font-size:13px;grid-column:1/-1">Nenhum serviço cadastrado.</p>';
+    return;
+  }
+  lista.innerHTML = servicos.map(s => `
+    <div class="admin-item">
+      <div class="admin-item-name">${s.nome}</div>
+      <div class="admin-item-meta" style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold)">R$ ${s.valor}</div>
+      <div class="admin-item-actions">
+        <button class="btn-sm btn-edit" onclick="abrirModalServico('${s.id}')">Editar</button>
+        <button class="btn-sm btn-del" onclick="deletarServico('${s.id}')">Excluir</button>
+      </div>
+    </div>`).join('');
+}
+
+window.abrirModalServico = (id) => {
+  document.getElementById('srv-id').value = id || '';
+  document.getElementById('srv-modal-title').textContent = id ? 'EDITAR SERVIÇO' : 'NOVO SERVIÇO';
+  if (id) {
+    const s = servicos.find(x => x.id === id);
+    document.getElementById('srv-nome').value = s.nome;
+    document.getElementById('srv-valor').value = s.valor;
+  } else {
+    document.getElementById('srv-nome').value = '';
+    document.getElementById('srv-valor').value = '';
+  }
+  document.getElementById('modal-servico').classList.add('open');
+};
+
+window.salvarServico = async () => {
+  const id = document.getElementById('srv-id').value;
+  const nome = document.getElementById('srv-nome').value.trim();
+  const valor = parseFloat(document.getElementById('srv-valor').value);
+  if (!nome || isNaN(valor)) return toast('⚠️ Preencha nome e valor');
+  if (id) await updateDoc(doc(db,'servicos',id), { nome, valor });
+  else await addDoc(collection(db,'servicos'), { nome, valor });
+  await carregarServicos();
+  renderServicos();
+  fecharModal('modal-servico');
+  toast('✅ Serviço salvo!');
+};
+
+window.deletarServico = async (id) => {
+  if (!confirm('Excluir este serviço? O histórico antigo será preservado.')) return;
+  await deleteDoc(doc(db,'servicos',id));
+  await carregarServicos();
+  renderServicos();
+  toast('🗑️ Serviço excluído');
+};
+
+// Fechar modal clicando fora
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
