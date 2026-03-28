@@ -83,6 +83,8 @@
   .h-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
   .h-valor { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--green); }
   .h-valor.tem-desc { color: var(--gold); }
+  .historico-main { display:flex; align-items:center; justify-content:space-between; width:100%; gap:10px; }
+  .btn-del-reg { background: rgba(224,82,82,0.1); color: var(--red); border: 1px solid rgba(224,82,82,0.25); border-radius: 8px; padding: 6px 10px; font-size: 11px; cursor: pointer; font-family: inherit; }
   .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
   .badge-Pix { background: rgba(82,192,122,0.15); color: var(--green); }
   .badge-Dinheiro { background: rgba(201,168,76,0.15); color: var(--gold); }
@@ -434,7 +436,12 @@ let descTipo = 'reais';
 let relViewAtual = 'geral';
 
 // ── HELPERS ──
-window.hoje = () => new Date().toISOString().split('T')[0];
+window.hoje = (date = new Date()) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
 window.fmt = (v) => `R$ ${parseFloat(v).toFixed(2).replace('.',',')}`;
 window.toast = (msg) => { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); };
 window.fecharModal = (id) => document.getElementById(id).classList.remove('open');
@@ -580,7 +587,7 @@ window.confirmarRegistro = async () => {
   await addDoc(collection(db, 'registros'), {
     barbeiroId: currentUser.uid,
     barbeiroNome: userData.nome,
-    sede: 'Admin',
+    sede: userData.sede || 'Sede 1',
     servicoId: servicoSelecionado.id,
     servicoNome: servicoSelecionado.nome,
     valorTabela: base,
@@ -588,6 +595,7 @@ window.confirmarRegistro = async () => {
     valorFinal,
     pagamento: pgtoSelecionado,
     porcentagem: 100,
+    isOwnerCut: true,
     timestamp: Timestamp.now(),
     data: hoje()
   });
@@ -601,7 +609,7 @@ window.confirmarRegistro = async () => {
 async function carregarMeusCortes() {
   const q = query(collection(db, 'registros'), where('barbeiroId','==',currentUser.uid), where('data','==',hoje()), orderBy('timestamp','desc'));
   const snap = await getDocs(q);
-  const regs = snap.docs.map(d => d.data());
+  const regs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   const total = regs.reduce((a,r) => a+r.valorFinal, 0);
   document.getElementById('mc-total').textContent = fmt(total);
   document.getElementById('mc-qtd').textContent = regs.length;
@@ -613,21 +621,36 @@ async function carregarMeusCortes() {
 function itemHistorico(r) {
   const hora = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '--:--';
   const temDesc = r.desconto > 0;
+  const delBtn = r.id ? `<button class="btn-del-reg" onclick="deletarRegistro('${r.id}')">Apagar</button>` : '';
   return `<div class="historico-item">
-    <div>
-      <div class="h-nome">${r.servicoNome}</div>
-      <div class="h-meta">${hora} · <span class="badge badge-${r.pagamento}">${r.pagamento}</span>${temDesc ? ` · <span style="color:var(--red);font-size:11px">-${fmt(r.desconto)}</span>` : ''}</div>
+    <div class="historico-main">
+      <div>
+        <div class="h-nome">${r.servicoNome}</div>
+        <div class="h-meta">${hora} · <span class="badge badge-${r.pagamento}">${r.pagamento}</span>${temDesc ? ` · <span style="color:var(--red);font-size:11px">-${fmt(r.desconto)}</span>` : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="h-valor ${temDesc?'tem-desc':''}">${fmt(r.valorFinal)}</div>
+        ${delBtn}
+      </div>
     </div>
-    <div class="h-valor ${temDesc?'tem-desc':''}">${fmt(r.valorFinal)}</div>
   </div>`;
 }
+
+
+window.deletarRegistro = async (id) => {
+  if (!id) return;
+  if (!confirm('Apagar este corte já registrado? Esta ação não pode ser desfeita.')) return;
+  await deleteDoc(doc(db, 'registros', id));
+  toast('🗑️ Corte apagado com sucesso');
+  carregarMeusCortes();
+};
 
 // ── DASHBOARD ──
 window.loadDashboard = async () => {
   const data = document.getElementById('dash-date').value;
   if (!data) return;
   const snap = await getDocs(query(collection(db, 'registros'), where('data','==',data)));
-  const regs = snap.docs.map(d => d.data());
+  const regs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
   const s1 = regs.filter(r => r.sede === 'Sede 1');
   const s2 = regs.filter(r => r.sede === 'Sede 2');
@@ -637,7 +660,7 @@ window.loadDashboard = async () => {
   document.getElementById('dash-s2-qt').textContent = `${s2.length} serviços`;
 
   let bolso = 0;
-  regs.forEach(r => { bolso += r.valorFinal * ((100 - (r.porcentagem||0)) / 100); });
+  regs.forEach(r => { bolso += r.isOwnerCut ? r.valorFinal : (r.valorFinal * ((100 - (r.porcentagem||0)) / 100)); });
   document.getElementById('dash-bolso').textContent = fmt(bolso);
 
   const por = {};
@@ -651,8 +674,8 @@ window.loadDashboard = async () => {
   const entries = Object.values(por);
   if (!entries.length) { lista.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Nenhum serviço nesta data</div>'; return; }
   lista.innerHTML = entries.sort((a,b)=>b.total-a.total).map(b => {
-    const liq = b.total * b.pct / 100;
-    const will = b.total - liq;
+    const liq = b.nome?.toLowerCase().includes('william') ? b.total : (b.total * b.pct / 100);
+    const will = b.nome?.toLowerCase().includes('william') ? b.total : (b.total - liq);
     return `<div class="relatorio-barbeiro">
       <div class="rb-header">
         <div><div class="rb-nome">${b.nome}</div><div class="rb-sede">${b.sede}</div></div>
@@ -670,7 +693,7 @@ window.loadDashboard = async () => {
 // ── RELATÓRIOS ──
 function iniciarRelatorio() {
   const ini = new Date(); ini.setDate(1);
-  document.getElementById('rel-ini').value = ini.toISOString().split('T')[0];
+  document.getElementById('rel-ini').value = hoje(ini);
   document.getElementById('rel-fim').value = hoje();
   loadRelatorio();
 }
@@ -692,7 +715,7 @@ window.loadRelatorio = async () => {
 
   const totalGeral = regs.reduce((a,r)=>a+r.valorFinal,0);
   let bolso = 0;
-  regs.forEach(r => { bolso += r.valorFinal * ((100-(r.porcentagem||0))/100); });
+  regs.forEach(r => { bolso += r.isOwnerCut ? r.valorFinal : (r.valorFinal * ((100-(r.porcentagem||0))/100)); });
 
   const por = {};
   regs.forEach(r => {
@@ -717,8 +740,8 @@ window.loadRelatorio = async () => {
     html += '<div class="empty"><div class="empty-icon">📊</div>Nenhum registro no período</div>';
   } else {
     html += entries.map(b => {
-      const liq = b.total * b.pct / 100;
-      const will = b.total - liq;
+      const liq = b.nome?.toLowerCase().includes('william') ? b.total : (b.total * b.pct / 100);
+      const will = b.nome?.toLowerCase().includes('william') ? b.total : (b.total - liq);
       return `<div class="relatorio-barbeiro">
         <div class="rb-header">
           <div><div class="rb-nome">${b.nome}</div><div class="rb-sede">${b.sede} · ${b.pct}%</div></div>
