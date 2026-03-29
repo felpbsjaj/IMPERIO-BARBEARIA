@@ -3,1108 +3,363 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Império Barbearia</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Império · Funcionários</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
 <style>
-  :root {
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --surface2: #1e1e1e;
-    --border: #2a2a2a;
-    --gold: #c9a84c;
-    --gold-light: #e8c97a;
-    --gold-dim: rgba(201,168,76,0.15);
-    --text: #f0ece4;
-    --text-muted: #6b6560;
-    --text-dim: #9b9590;
-    --red: #e05252;
-    --green: #52c07a;
-    --blue: #5289e0;
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0c0c0e;--bg2:#101012;--surface:#15151a;--surface2:#1a1a20;--surface3:#202028;
+  --border:rgba(255,255,255,0.055);--border2:rgba(255,255,255,0.09);
+  --gold:#c8a84b;--gold2:#dfc06e;--golddim:rgba(200,168,75,0.1);--golddim2:rgba(200,168,75,0.06);
+  --text:#eeeae0;--text2:#9b9690;--text3:#4e4c48;
+  --green:#4dbe78;--greendim:rgba(77,190,120,0.1);
+  --red:#e05252;--reddim:rgba(224,82,82,0.1);
+  --blue:#5b8dee;--bluedim:rgba(91,141,238,0.1);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;overflow-x:hidden;}
 
-  /* ── LOADING ── */
-  #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 16px; }
-  #loading h1 { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 4px; color: var(--gold); }
-  #loading p { color: var(--text-muted); font-size: 14px; }
-  .spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:14px;}
+#loading h1{font-family:'Syne',sans-serif;font-weight:800;font-size:40px;letter-spacing:5px;color:var(--gold);}
+#loading p{color:var(--text3);font-size:12.5px;}
+.spinner{width:26px;height:26px;border:2px solid var(--surface3);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ── AUTH ── */
-  #auth-screen { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 24px; flex-direction: column; gap: 32px; }
-  .auth-logo { text-align: center; }
-  .auth-logo h1 { font-family: 'Bebas Neue', sans-serif; font-size: 56px; letter-spacing: 6px; color: var(--gold); line-height: 1; }
-  .auth-logo p { color: var(--text-muted); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
-  .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; }
-  .auth-card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--text); }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-  .field input { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-family: inherit; font-size: 15px; outline: none; transition: border-color 0.2s; }
-  .field input:focus { border-color: var(--gold); }
-  .btn { padding: 14px; border-radius: var(--radius-sm); border: none; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
-  .btn-gold { background: var(--gold); color: #0a0a0a; }
-  .btn-gold:hover { background: var(--gold-light); }
-  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); font-size: 14px; font-family: inherit; letter-spacing: 0; }
-  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
-  .auth-error { color: var(--red); font-size: 13px; text-align: center; display: none; }
+/* AUTH */
+#auth-screen{display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px;flex-direction:column;gap:26px;}
+.auth-logo h1{font-family:'Syne',sans-serif;font-weight:800;font-size:44px;letter-spacing:6px;color:var(--gold);text-align:center;}
+.auth-logo p{color:var(--text3);font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;text-align:center;margin-top:3px;}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:26px;width:100%;max-width:350px;display:flex;flex-direction:column;gap:13px;}
+.auth-card h2{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+.input-f{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;transition:border-color .15s;}
+.input-f:focus{border-color:var(--gold);}
+.btn-gold{background:var(--gold);color:#0c0c0e;border:none;border-radius:8px;padding:13px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:.5px;cursor:pointer;width:100%;transition:all .15s;}
+.btn-gold:hover{background:var(--gold2);}
+.auth-error{color:var(--red);font-size:11.5px;text-align:center;display:none;}
 
-  /* ── APP SHELL ── */
-  #app { display: none; flex-direction: column; min-height: 100vh; }
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh;}
 
-  /* ── HEADER ── */
-  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .header-logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--gold); }
-  .header-right { display: flex; align-items: center; gap: 12px; }
-  .header-user { font-size: 13px; color: var(--text-muted); }
-  .btn-icon { background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text-muted); cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.2s; }
-  .btn-icon:hover { border-color: var(--gold); color: var(--gold); }
+/* HEADER */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header-left{display:flex;flex-direction:column;}
+.header-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:3px;color:var(--gold);line-height:1;}
+.header-sede{font-size:10.5px;color:var(--text3);margin-top:1px;letter-spacing:.5px;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.header-nome{font-size:12.5px;color:var(--text2);}
+.btn-icon{background:transparent;border:1px solid var(--border);border-radius:7px;padding:7px;color:var(--text3);cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;display:flex;align-items:center;}
+.btn-icon:hover{border-color:var(--gold);color:var(--gold);}
 
-  /* ── NAV TABS ── */
-  .nav-tabs { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; overflow-x: auto; scrollbar-width: none; }
-  .nav-tabs::-webkit-scrollbar { display: none; }
-  .nav-tab { padding: 14px 20px; font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1.5px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
-  .nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
-  .nav-tab:hover:not(.active) { color: var(--text-dim); }
+/* DAY SUMMARY */
+.day-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;gap:20px;overflow-x:auto;scrollbar-width:none;}
+.day-bar::-webkit-scrollbar{display:none;}
+.day-stat{display:flex;flex-direction:column;gap:2px;min-width:fit-content;}
+.day-stat-label{font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+.day-stat-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;line-height:1;}
+.day-stat-val.gold{color:var(--gold);}
+.day-stat-val.green{color:var(--green);}
+.day-stat-val.red{color:var(--red);}
 
-  /* ── CONTENT ── */
-  .content { flex: 1; padding: 20px; max-width: 900px; margin: 0 auto; width: 100%; }
+/* NAV */
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;}
+.nav-tab{flex:1;padding:12px 8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;text-align:center;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.nav-tab i{width:14px;height:14px;}
 
-  /* ── CARDS ── */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
-  .card-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1.5px; color: var(--gold); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+/* CONTENT */
+.content{flex:1;padding:16px;max-width:580px;margin:0 auto;width:100%;}
+.tab-page{display:none;}
+.tab-page.active{display:block;animation:fadeUp .25s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-  /* ── STAT CARDS ── */
-  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
-  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; color: var(--text); }
-  .stat-value.gold { color: var(--gold); }
-  .stat-value.green { color: var(--green); }
+/* SERVIÇOS */
+.page-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:11px;display:block;}
+.srv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;}
+@media(min-width:380px){.srv-grid{grid-template-columns:repeat(3,1fr);}}
+.srv-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 11px;cursor:pointer;text-align:center;transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:5px;user-select:none;}
+.srv-btn:hover,.srv-btn:active{border-color:var(--gold);background:var(--golddim);transform:translateY(-1px);}
+.srv-btn:active{transform:scale(.96);}
+.srv-nome{font-size:12px;font-weight:500;line-height:1.3;color:var(--text);}
+.srv-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--gold);}
 
-  /* ── SERVIÇOS GRID ── */
-  .servicos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  @media(min-width: 480px) { .servicos-grid { grid-template-columns: repeat(3, 1fr); } }
-  .servico-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 12px; cursor: pointer; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; gap: 4px; }
-  .servico-btn:hover, .servico-btn:active { border-color: var(--gold); background: var(--gold-dim); }
-  .servico-btn .s-nome { font-size: 13px; font-weight: 500; color: var(--text); }
-  .servico-btn .s-valor { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); letter-spacing: 1px; }
+/* HIST */
+.hist-list{display:flex;flex-direction:column;gap:6px;}
+.hist-item{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:border-color .15s;}
+.hist-item:hover{border-color:var(--border2);}
+.hist-srv{font-size:13px;font-weight:500;}
+.hist-meta{font-size:10.5px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.hist-val{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--green);white-space:nowrap;}
+.hist-val.disc{color:var(--gold2);}
+.hist-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.btn-del{background:var(--reddim);color:var(--red);border:1px solid rgba(224,82,82,.18);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:3px;}
 
-  /* ── HISTORICO ── */
-  .historico-list { display: flex; flex-direction: column; gap: 8px; }
-  .historico-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
-  .historico-item .h-info { display: flex; flex-direction: column; gap: 2px; }
-  .historico-item .h-nome { font-size: 14px; font-weight: 500; color: var(--text); }
-  .historico-item .h-meta { font-size: 12px; color: var(--text-muted); }
-  .historico-item .h-valor { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--green); letter-spacing: 1px; }
-  .historico-item .h-valor.desconto { color: var(--gold); }
-  .historico-main { display:flex; align-items:center; justify-content:space-between; width:100%; gap:10px; }
-  .btn-del-reg { background: rgba(224,82,82,0.1); color: var(--red); border: 1px solid rgba(224,82,82,0.25); border-radius: 8px; padding: 6px 10px; font-size: 11px; cursor: pointer; font-family: inherit; }
-  .btn-del-reg:hover { background: rgba(224,82,82,0.2); }
-  .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
-  .badge-pix { background: rgba(82,192,122,0.15); color: var(--green); }
-  .badge-dinheiro { background: rgba(201,168,76,0.15); color: var(--gold); }
-  .badge-credito { background: rgba(82,137,224,0.15); color: var(--blue); }
-  .badge-debito { background: rgba(82,137,224,0.1); color: #7aaae8; }
+/* TAGS */
+.tag{font-size:10px;padding:2px 6px;border-radius:5px;font-weight:600;white-space:nowrap;}
+.tag-pix{background:var(--greendim);color:var(--green);}
+.tag-din{background:var(--golddim);color:var(--gold2);}
+.tag-cred{background:var(--bluedim);color:var(--blue);}
+.tag-deb{background:rgba(91,141,238,.07);color:#7aabf0;}
+.tag-pago{background:rgba(77,190,120,.1);color:var(--green);border:1px solid rgba(77,190,120,.18);}
 
-  /* ── MODAL / POPUP ── */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; display: none; align-items: flex-end; justify-content: center; padding: 0; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; padding: 28px 24px 40px; display: flex; flex-direction: column; gap: 20px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.25s ease; }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: -12px auto 0; }
-  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--gold); text-align: center; }
-  .modal-servico-preview { background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius); padding: 16px; text-align: center; }
-  .modal-servico-preview .ms-nome { font-size: 14px; color: var(--text-muted); margin-bottom: 4px; }
-  .modal-servico-preview .ms-valor { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--gold); }
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;animation:fadeIn .17s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:26px 22px 40px;display:flex;flex-direction:column;gap:16px;max-height:92vh;overflow-y:auto;animation:slideUp .24s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--surface3);border-radius:2px;margin:-10px auto 0;}
+.modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;}
+.modal-preview{background:var(--golddim2);border:1px solid rgba(200,168,75,.1);border-radius:10px;padding:16px;text-align:center;}
+.mp-name{font-size:11.5px;color:var(--text3);margin-bottom:3px;}
+.mp-val{font-family:'Syne',sans-serif;font-size:34px;font-weight:700;color:var(--gold2);}
+.modal-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:7px;}
+.pgto-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;}
+.pgto-btn{background:var(--surface2);border:2px solid var(--border);border-radius:9px;padding:12px 10px;cursor:pointer;text-align:center;font-size:13px;font-weight:500;color:var(--text2);transition:all .15s;font-family:inherit;}
+.pgto-btn:hover{border-color:var(--border2);color:var(--text);}
+.pgto-btn.sel{border-color:var(--gold);background:var(--golddim);color:var(--gold2);}
+.desc-toggle{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;cursor:pointer;transition:border-color .15s;}
+.desc-toggle:hover{border-color:var(--border2);}
+.desc-toggle-text{font-size:13px;color:var(--text2);}
+.desc-body{display:none;flex-direction:column;gap:9px;}
+.desc-body.open{display:flex;}
+.desc-type{display:flex;gap:6px;}
+.desc-type-btn{flex:1;padding:8px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;font-size:12px;font-family:inherit;transition:all .15s;}
+.desc-type-btn.active{border-color:var(--gold);color:var(--gold);background:var(--golddim);}
+.input-num{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:15px;outline:none;width:100%;transition:border-color .15s;-moz-appearance:textfield;}
+.input-num::-webkit-outer-spin-button,.input-num::-webkit-inner-spin-button{-webkit-appearance:none;}
+.input-num:focus{border-color:var(--gold);}
+.vf-row{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:var(--bg2);border-radius:9px;border:1px solid var(--border);}
+.vf-label{font-size:12px;color:var(--text3);}
+.vf-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:var(--green);}
+.btn-registrar{background:var(--gold);color:#0c0c0e;border:none;border-radius:9px;padding:15px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:.5px;cursor:pointer;width:100%;transition:all .15s;}
+.btn-registrar:hover{background:var(--gold2);}
+.btn-registrar:active{transform:scale(.98);}
+.btn-registrar:disabled{background:var(--surface3);color:var(--text3);cursor:not-allowed;}
+.btn-cancel{background:none;border:1px solid var(--border);border-radius:9px;padding:12px;color:var(--text3);cursor:pointer;font-family:inherit;font-size:13px;width:100%;transition:all .15s;}
+.btn-cancel:hover{border-color:var(--border2);color:var(--text2);}
 
-  /* Pagamento */
-  .pgto-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .pgto-btn { background: var(--surface2); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 12px; cursor: pointer; text-align: center; font-size: 14px; font-weight: 500; color: var(--text); transition: all 0.2s; }
-  .pgto-btn:hover, .pgto-btn.selected { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
-
-  /* Desconto toggle */
-  .desconto-toggle { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 12px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
-  .desconto-toggle span { font-size: 14px; color: var(--text-dim); }
-  .toggle-icon { font-size: 18px; transition: transform 0.2s; }
-  .desconto-fields { display: none; flex-direction: column; gap: 10px; margin-top: 8px; }
-  .desconto-fields.open { display: flex; }
-  .desconto-type { display: flex; gap: 8px; }
-  .desconto-type button { flex: 1; padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); cursor: pointer; font-size: 13px; transition: all 0.2s; }
-  .desconto-type button.active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
-  .field input[type=number] { -moz-appearance: textfield; }
-  .field input[type=number]::-webkit-outer-spin-button, .field input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
-
-  /* Valor final preview */
-  .valor-final { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--bg); border-radius: var(--radius-sm); }
-  .valor-final span { font-size: 13px; color: var(--text-muted); }
-  .valor-final .vf-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--green); }
-
-  .btn-registrar { background: var(--gold); color: #0a0a0a; border: none; border-radius: var(--radius-sm); padding: 16px; font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; width: 100%; }
-  .btn-registrar:hover { background: var(--gold-light); }
-  .btn-registrar:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
-  .btn-cancel { background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; font-family: inherit; font-size: 14px; color: var(--text-muted); cursor: pointer; width: 100%; }
-
-  /* Toast */
-  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface); border: 1px solid var(--gold); border-radius: 30px; padding: 12px 24px; font-size: 14px; color: var(--gold); z-index: 9999; transition: transform 0.3s; white-space: nowrap; }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* Empty state */
-  .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
-
-  /* ── ADMIN ── */
-  .admin-section { margin-bottom: 24px; }
-  .admin-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  @media(min-width: 600px) { .admin-grid { grid-template-columns: repeat(3, 1fr); } }
-  .admin-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; }
-  .admin-item-name { font-size: 14px; font-weight: 500; color: var(--text); }
-  .admin-item-meta { font-size: 12px; color: var(--text-muted); }
-  .admin-item-actions { display: flex; gap: 6px; margin-top: 4px; }
-  .btn-sm { padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
-  .btn-edit { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
-  .btn-del { background: rgba(224,82,82,0.1); color: var(--red); border: 1px solid rgba(224,82,82,0.2); }
-  .btn-add { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius-sm); padding: 10px 16px; cursor: pointer; font-size: 13px; font-family: inherit; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
-  .btn-add:hover { background: rgba(201,168,76,0.25); }
-
-  /* Form modal */
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .section-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-
-  /* Relatório */
-  .relatorio-barbeiro { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; }
-  .rb-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-  .rb-nome { font-weight: 600; font-size: 15px; color: var(--text); }
-  .rb-sede { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  .rb-total { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--green); }
-  .rb-breakdown { display: flex; gap: 16px; flex-wrap: wrap; }
-  .rb-item { font-size: 12px; color: var(--text-muted); }
-  .rb-item span { color: var(--text-dim); font-weight: 500; }
-
-  .date-filter { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
-  .date-filter input[type=date] { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text); font-family: inherit; font-size: 14px; outline: none; }
-  .date-filter input[type=date]:focus { border-color: var(--gold); }
-  .filter-btn { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius-sm); padding: 8px 16px; cursor: pointer; font-size: 13px; font-family: inherit; }
-
-  /* Tabs internas */
-  .inner-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-  .inner-tab { padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-muted); transition: all 0.2s; }
-  .inner-tab.active { background: var(--gold-dim); border-color: rgba(201,168,76,0.4); color: var(--gold); }
-
-  /* Sede resumo */
-  .sede-resumo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-  .sede-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
-  .sede-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--gold); margin-bottom: 8px; }
-  .sede-card .sede-total { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--green); }
-  .sede-card .sede-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-  .bolso-card { background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.05)); border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; text-align: center; }
-  .bolso-card label { font-size: 12px; color: var(--gold); text-transform: uppercase; letter-spacing: 2px; }
-  .bolso-card .bolso-valor { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: var(--gold); letter-spacing: 2px; }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .hidden { display: none !important; }
-  .flex { display: flex; }
+/* EMPTY / TOAST */
+.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;}
+.empty-ico{font-size:36px;margin-bottom:10px;opacity:.18;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--surface2);border:1px solid rgba(200,168,75,.28);border-radius:22px;padding:9px 20px;font-size:12.5px;color:var(--gold);z-index:9999;transition:transform .26s;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+*{scrollbar-width:thin;scrollbar-color:var(--surface3) transparent;}
+*::-webkit-scrollbar{width:4px;}
+*::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div id="loading">
-  <h1>IMPÉRIO</h1>
-  <div class="spinner"></div>
-  <p>Carregando...</p>
-</div>
+<div id="loading"><h1>IMPÉRIO</h1><div class="spinner"></div><p>Carregando...</p></div>
 
-<!-- AUTH -->
 <div id="auth-screen">
-  <div class="auth-logo">
-    <h1>IMPÉRIO</h1>
-    <p>Barbearia · Sistema</p>
-  </div>
+  <div class="auth-logo"><h1>IMPÉRIO</h1><p>Área dos Funcionários</p></div>
   <div class="auth-card">
     <h2>Entrar</h2>
-    <div class="field">
-      <label>E-mail</label>
-      <input type="email" id="auth-email" placeholder="seu@email.com" autocomplete="email">
-    </div>
-    <div class="field">
-      <label>Senha</label>
-      <input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password">
-    </div>
+    <div class="field"><label>E-mail</label><input class="input-f" type="email" id="auth-email" placeholder="seu@email.com" autocomplete="email"></div>
+    <div class="field"><label>Senha</label><input class="input-f" type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password"></div>
     <p class="auth-error" id="auth-error"></p>
-    <button class="btn btn-gold" onclick="doLogin()">ENTRAR</button>
+    <button class="btn-gold" onclick="doLogin()">ENTRAR</button>
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <div class="header">
-    <span class="header-logo">IMPÉRIO</span>
+    <div class="header-left">
+      <span class="header-logo">IMPÉRIO</span>
+      <span class="header-sede" id="header-sede">—</span>
+    </div>
     <div class="header-right">
-      <span class="header-user" id="header-user-name"></span>
-      <button class="btn-icon" onclick="doLogout()">Sair</button>
+      <span class="header-nome" id="header-nome">—</span>
+      <button class="btn-icon" onclick="doLogout()" title="Sair"><i data-lucide="log-out" style="width:15px;height:15px"></i></button>
     </div>
   </div>
 
-  <!-- NAV (barbeiro) -->
-  <div class="nav-tabs" id="nav-barbeiro">
-    <div class="nav-tab active" onclick="showTab('tab-registrar', this)">Registrar</div>
-    <div class="nav-tab" onclick="showTab('tab-hoje', this)">Hoje</div>
+  <div class="day-bar">
+    <div class="day-stat"><span class="day-stat-label">Total bruto</span><span class="day-stat-val gold" id="ds-bruto">R$ 0</span></div>
+    <div class="day-stat"><span class="day-stat-label">Seu valor</span><span class="day-stat-val green" id="ds-liq">R$ 0</span></div>
+    <div class="day-stat"><span class="day-stat-label">Serviços</span><span class="day-stat-val" id="ds-qt">0</span></div>
+    <div class="day-stat"><span class="day-stat-label">Descontos</span><span class="day-stat-val red" id="ds-desc">R$ 0</span></div>
   </div>
 
-  <!-- NAV (admin/william) -->
-  <div class="nav-tabs hidden" id="nav-admin">
-    <div class="nav-tab active" onclick="showTab('tab-meus-cortes', this)">Meus Cortes</div>
-    <div class="nav-tab" onclick="showTab('tab-dashboard', this)">Dashboard</div>
-    <div class="nav-tab" onclick="showTab('tab-relatorios', this)">Relatórios</div>
-    <div class="nav-tab" onclick="showTab('tab-admin-barbeiros', this)">Barbeiros</div>
-    <div class="nav-tab" onclick="showTab('tab-admin-servicos', this)">Serviços</div>
+  <div class="nav">
+    <div class="nav-tab active" data-tab="tab-reg"><i data-lucide="scissors"></i>Registrar</div>
+    <div class="nav-tab" data-tab="tab-hist"><i data-lucide="clock"></i>Histórico</div>
   </div>
 
-  <!-- ══════════════════════ TABS BARBEIRO ══════════════════════ -->
-
-  <!-- REGISTRAR -->
-  <div id="tab-registrar" class="content">
-    <div class="card">
-      <div class="card-title">✂️ Selecione o Serviço</div>
-      <div class="servicos-grid" id="servicos-grid-barbeiro"></div>
+  <div class="content">
+    <div id="tab-reg" class="tab-page active">
+      <span class="page-label">Toque no serviço realizado</span>
+      <div class="srv-grid" id="srv-grid"></div>
     </div>
-  </div>
-
-  <!-- HOJE (barbeiro) -->
-  <div id="tab-hoje" class="content hidden">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Total Bruto</div>
-        <div class="stat-value gold" id="stat-bruto-b">R$ 0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Seu Valor</div>
-        <div class="stat-value green" id="stat-liquido-b">R$ 0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Cortes</div>
-        <div class="stat-value" id="stat-cortes-b">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Descontos</div>
-        <div class="stat-value" id="stat-desc-b">R$ 0</div>
-      </div>
+    <div id="tab-hist" class="tab-page">
+      <span class="page-label">Serviços de hoje</span>
+      <div class="hist-list" id="hist-list"><div class="empty"><div class="empty-ico">✂️</div>Nenhum serviço hoje</div></div>
     </div>
-    <div class="card">
-      <div class="card-title">📋 Histórico do Dia</div>
-      <div class="historico-list" id="historico-barbeiro">
-        <div class="empty"><div class="empty-icon">✂️</div>Nenhum serviço hoje ainda</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════ TABS ADMIN ══════════════════════ -->
-
-  <!-- MEUS CORTES (william) -->
-  <div id="tab-meus-cortes" class="content hidden">
-    <div class="card">
-      <div class="card-title">✂️ Registrar Serviço</div>
-      <div class="servicos-grid" id="servicos-grid-admin"></div>
-    </div>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Meus Cortes Hoje</div>
-        <div class="stat-value gold" id="stat-admin-bruto">R$ 0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Serviços</div>
-        <div class="stat-value" id="stat-admin-qtd">0</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">📋 Meu Histórico Hoje</div>
-      <div class="historico-list" id="historico-admin-proprio"></div>
-    </div>
-  </div>
-
-  <!-- DASHBOARD -->
-  <div id="tab-dashboard" class="content hidden">
-    <div class="date-filter">
-      <input type="date" id="dash-date">
-      <button class="filter-btn" onclick="loadDashboard()">Filtrar</button>
-      <button class="filter-btn" onclick="setToday('dash-date'); loadDashboard()">Hoje</button>
-    </div>
-
-    <div class="bolso-card">
-      <div><label>💰 No seu bolso</label></div>
-      <div class="bolso-valor" id="dash-bolso">R$ 0</div>
-    </div>
-
-    <div class="sede-resumo">
-      <div class="sede-card">
-        <h3>Sede 1</h3>
-        <div class="sede-total" id="dash-sede1">R$ 0</div>
-        <div class="sede-meta" id="dash-sede1-qt">0 serviços</div>
-      </div>
-      <div class="sede-card">
-        <h3>Sede 2</h3>
-        <div class="sede-total" id="dash-sede2">R$ 0</div>
-        <div class="sede-meta" id="dash-sede2-qt">0 serviços</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">👥 Por Barbeiro</div>
-      <div id="dash-barbeiros-list"></div>
-    </div>
-  </div>
-
-  <!-- RELATÓRIOS -->
-  <div id="tab-relatorios" class="content hidden">
-    <div class="date-filter">
-      <input type="date" id="rel-inicio">
-      <span style="color:var(--text-muted);font-size:13px">até</span>
-      <input type="date" id="rel-fim">
-      <button class="filter-btn" onclick="loadRelatorio()">Filtrar</button>
-    </div>
-    <div class="inner-tabs">
-      <button class="inner-tab active" onclick="setRelView('geral', this)">Geral</button>
-      <button class="inner-tab" onclick="setRelView('sede1', this)">Sede 1</button>
-      <button class="inner-tab" onclick="setRelView('sede2', this)">Sede 2</button>
-    </div>
-    <div id="relatorio-content"></div>
-  </div>
-
-  <!-- ADMIN BARBEIROS -->
-  <div id="tab-admin-barbeiros" class="content hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div class="section-label" style="margin:0">Barbeiros Cadastrados</div>
-      <button class="btn-add" onclick="openModalBarbeiro()">+ Adicionar</button>
-    </div>
-    <div class="admin-grid" id="barbeiros-list"></div>
-  </div>
-
-  <!-- ADMIN SERVIÇOS -->
-  <div id="tab-admin-servicos" class="content hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div class="section-label" style="margin:0">Serviços / Tabela de Preços</div>
-      <button class="btn-add" onclick="openModalServico()">+ Adicionar</button>
-    </div>
-    <div class="admin-grid" id="servicos-list"></div>
   </div>
 </div>
 
-<!-- ══════════════════════ MODAL REGISTRO ══════════════════════ -->
-<div class="modal-overlay" id="modal-registro">
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-reg">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">REGISTRAR SERVIÇO</div>
-    <div class="modal-servico-preview">
-      <div class="ms-nome" id="modal-servico-nome">—</div>
-      <div class="ms-valor" id="modal-servico-valor">R$ 0</div>
-    </div>
-
-    <div>
-      <div class="section-label">Forma de Pagamento</div>
+    <div class="modal-title">Registrar Serviço</div>
+    <div class="modal-preview"><div class="mp-name" id="reg-nome">—</div><div class="mp-val" id="reg-val">R$ 0</div></div>
+    <div><div class="modal-label">Forma de Pagamento</div>
       <div class="pgto-grid">
-        <div class="pgto-btn" onclick="selectPgto('Pix', this)">💚 Pix</div>
-        <div class="pgto-btn" onclick="selectPgto('Dinheiro', this)">💵 Dinheiro</div>
-        <div class="pgto-btn" onclick="selectPgto('Crédito', this)">💳 Crédito</div>
-        <div class="pgto-btn" onclick="selectPgto('Débito', this)">🏦 Débito</div>
+        <button class="pgto-btn" onclick="selPgto('Pix',this)">💚 Pix</button>
+        <button class="pgto-btn" onclick="selPgto('Dinheiro',this)">💵 Dinheiro</button>
+        <button class="pgto-btn" onclick="selPgto('Crédito',this)">💳 Crédito</button>
+        <button class="pgto-btn" onclick="selPgto('Débito',this)">🏦 Débito</button>
       </div>
     </div>
-
     <div>
-      <div class="desconto-toggle" onclick="toggleDesconto()">
-        <span>🏷️ Adicionar desconto (opcional)</span>
-        <span class="toggle-icon" id="desconto-icon">+</span>
+      <div class="desc-toggle" onclick="toggleDesc()">
+        <span class="desc-toggle-text">🏷️ Desconto (opcional)</span>
+        <i data-lucide="plus" id="desc-ico" style="width:15px;height:15px;color:var(--text3);transition:transform .2s"></i>
       </div>
-      <div class="desconto-fields" id="desconto-fields">
-        <div class="desconto-type">
-          <button class="active" id="desc-reais-btn" onclick="setDescType('reais')">R$ Reais</button>
-          <button id="desc-pct-btn" onclick="setDescType('pct')">% Porcentagem</button>
+      <div class="desc-body" id="desc-body">
+        <div class="desc-type">
+          <button class="desc-type-btn active" id="btn-reais" onclick="setDescTipo('reais')">R$ Reais</button>
+          <button class="desc-type-btn" id="btn-pct" onclick="setDescTipo('pct')">% Porcentagem</button>
         </div>
-        <div class="field">
-          <label id="desc-label">Valor do Desconto (R$)</label>
-          <input type="number" id="desc-valor" placeholder="0" min="0" oninput="updateValorFinal()">
-        </div>
+        <input type="number" class="input-num" id="desc-val" placeholder="0" min="0" oninput="updFinal()">
       </div>
     </div>
-
-    <div class="valor-final">
-      <span>Valor Final</span>
-      <span class="vf-num" id="valor-final-display">R$ 0</span>
-    </div>
-
-    <button class="btn-registrar" id="btn-confirmar-registro" onclick="confirmarRegistro()" disabled>REGISTRAR</button>
-    <button class="btn-cancel" onclick="closeModalRegistro()">Cancelar</button>
+    <div class="vf-row"><span class="vf-label">Valor Final</span><span class="vf-val" id="vf-val">R$ 0</span></div>
+    <button class="btn-registrar" id="btn-confirm" onclick="confirmar()" disabled>REGISTRAR</button>
+    <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
   </div>
 </div>
 
-<!-- ══════════════════════ MODAL BARBEIRO ══════════════════════ -->
-<div class="modal-overlay" id="modal-barbeiro">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-barbeiro-title">NOVO BARBEIRO</div>
-    <input type="hidden" id="barbeiro-edit-id">
-    <div class="field">
-      <label>Nome</label>
-      <input type="text" id="barb-nome" placeholder="Nome do barbeiro">
-    </div>
-    <div class="field">
-      <label>E-mail (login)</label>
-      <input type="email" id="barb-email" placeholder="barbeiro@email.com">
-    </div>
-    <div class="field" id="barb-senha-field">
-      <label>Senha inicial</label>
-      <input type="password" id="barb-senha" placeholder="Mínimo 6 caracteres">
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Sede</label>
-        <select id="barb-sede" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-family:inherit;font-size:15px;outline:none;">
-          <option value="Sede 1">Sede 1</option>
-          <option value="Sede 2">Sede 2</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>% do Barbeiro</label>
-        <input type="number" id="barb-pct" placeholder="60" min="0" max="100">
-      </div>
-    </div>
-    <button class="btn-registrar" onclick="salvarBarbeiro()">SALVAR</button>
-    <button class="btn-cancel" onclick="closeModal('modal-barbeiro')">Cancelar</button>
-  </div>
-</div>
-
-<!-- ══════════════════════ MODAL SERVIÇO ══════════════════════ -->
-<div class="modal-overlay" id="modal-servico">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-servico-title">NOVO SERVIÇO</div>
-    <input type="hidden" id="servico-edit-id">
-    <div class="field">
-      <label>Nome do Serviço</label>
-      <input type="text" id="srv-nome" placeholder="Ex: Corte + Barba">
-    </div>
-    <div class="field">
-      <label>Valor (R$)</label>
-      <input type="number" id="srv-valor" placeholder="50" min="0">
-    </div>
-    <button class="btn-registrar" onclick="salvarServico()">SALVAR</button>
-    <button class="btn-cancel" onclick="closeModal('modal-servico')">Cancelar</button>
-  </div>
-</div>
-
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- ══════════════════════ FIREBASE + APP LOGIC ══════════════════════ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, orderBy, Timestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, getDoc, getDocs, deleteDoc, query, where, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA7ISbwf_RCg_3IRTOboeV1Y9W4_wf8HY4",
-  authDomain: "barb-imperio.firebaseapp.com",
-  projectId: "barb-imperio",
-  storageBucket: "barb-imperio.firebasestorage.app",
-  messagingSenderId: "1011188015253",
-  appId: "1:1011188015253:web:bc824812e8ac6628017b9c",
-  measurementId: "G-BT9BWWCNJ9"
-};
+const firebaseConfig = {apiKey:"AIzaSyA7ISbwf_RCg_3IRTOboeV1Y9W4_wf8HY4",authDomain:"barb-imperio.firebaseapp.com",projectId:"barb-imperio",storageBucket:"barb-imperio.firebasestorage.app",messagingSenderId:"1011188015253",appId:"1:1011188015253:web:bc824812e8ac6628017b9c"};
+const fbApp=initializeApp(firebaseConfig);
+const auth=getAuth(fbApp),db=getFirestore(fbApp);
+let cu=null,ud=null,servicos=[],selSrv=null,selPgtoVal=null,descOpen=false,descTipoVal='reais';
+const hoje=()=>new Date().toISOString().split('T')[0];
+const fmt=v=>`R$ ${parseFloat(v).toFixed(2).replace('.',',')}`;
+const toast=msg=>{const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);};
+const icons=()=>{if(window.lucide)lucide.createIcons();};
+window.fecharModal=()=>document.getElementById('modal-reg').classList.remove('open');
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// ── STATE ──
-let currentUser = null;
-let currentUserData = null;
-let selectedServico = null;
-let selectedPgto = null;
-let descontoOpen = false;
-let descType = 'reais';
-let servicos = [];
-let barbeiros = [];
-let relView = 'geral';
-
-// ── AUTH STATE ──
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
-    const snap = await getDoc(doc(db, 'usuarios', user.uid));
-    if (snap.exists()) {
-      currentUserData = snap.data();
-      initApp();
-    } else {
-      // Criar doc de usuario admin se nao existe
-      currentUserData = { nome: 'William', role: 'admin' };
-      await setDoc(doc(db, 'usuarios', user.uid), currentUserData);
-      initApp();
-    }
-  } else {
-    currentUser = null;
-    currentUserData = null;
-    show('auth-screen', 'flex');
-    hide('app'); hide('loading');
-  }
+onAuthStateChanged(auth,async user=>{
+  if(!user){showAuth();return;}
+  const snap=await getDoc(doc(db,'usuarios',user.uid));
+  if(!snap.exists()){await signOut(auth);showAuth();return;}
+  const data=snap.data();
+  if(data.role==='admin'){await signOut(auth);document.getElementById('loading').style.display='none';document.getElementById('auth-screen').style.display='flex';document.getElementById('auth-error').textContent='Use o painel admin para sua conta.';document.getElementById('auth-error').style.display='block';return;}
+  cu=user;ud=data;initApp();
 });
 
-function show(id, disp='block') { document.getElementById(id).style.display = disp; }
-function hide(id) { document.getElementById(id).style.display = 'none'; }
+function showAuth(){document.getElementById('loading').style.display='none';document.getElementById('auth-screen').style.display='flex';document.getElementById('app').style.display='none';}
 
-function initApp() {
-  hide('loading'); hide('auth-screen');
-  show('app', 'flex');
-  document.getElementById('header-user-name').textContent = currentUserData.nome || '';
-
-  if (currentUserData.role === 'admin') {
-    hide('nav-barbeiro');
-    show('nav-admin', 'flex');
-    // Mostrar tab admin
-    document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.add('hidden'));
-    document.getElementById('tab-meus-cortes').classList.remove('hidden');
-    document.querySelector('#nav-admin .nav-tab').click();
-    loadServicosAdmin();
-    loadBarbeirosAdmin();
-    setToday('dash-date');
-    setRelDates();
-  } else {
-    show('nav-barbeiro', 'flex');
-    hide('nav-admin');
-    document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.add('hidden'));
-    document.getElementById('tab-registrar').classList.remove('hidden');
-    loadServicosBarbeiro();
-    loadHistoricoBarbeiro();
-  }
+async function initApp(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('header-nome').textContent=ud.nome||'';
+  document.getElementById('header-sede').textContent=ud.sede||'';
+  document.querySelectorAll('.nav-tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+      if(tab.dataset.tab==='tab-hist')carregarHistorico();
+    });
+  });
+  await carregarServicos();
+  carregarResumo();
+  icons();
 }
 
-// ── TABS ──
-window.showTab = function(tabId, el) {
-  const nav = el.closest('.nav-tabs');
-  nav.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  const prefix = currentUserData.role === 'admin' ? ['tab-meus-cortes','tab-dashboard','tab-relatorios','tab-admin-barbeiros','tab-admin-servicos'] : ['tab-registrar','tab-hoje'];
-  prefix.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('hidden'); });
-  document.getElementById(tabId).classList.remove('hidden');
-
-  if (tabId === 'tab-hoje') loadHistoricoBarbeiro();
-  if (tabId === 'tab-dashboard') loadDashboard();
-  if (tabId === 'tab-admin-barbeiros') renderBarbeirosAdmin();
-  if (tabId === 'tab-admin-servicos') renderServicosAdmin();
-  if (tabId === 'tab-meus-cortes') loadHistoricoAdmin();
+window.doLogin=async()=>{
+  const email=document.getElementById('auth-email').value.trim(),pass=document.getElementById('auth-pass').value,err=document.getElementById('auth-error');
+  err.style.display='none';
+  try{await signInWithEmailAndPassword(auth,email,pass);}
+  catch(e){err.textContent='E-mail ou senha incorretos.';err.style.display='block';}
 };
+window.doLogout=()=>signOut(auth);
 
-// ── AUTH ──
-window.doLogin = async function() {
-  const email = document.getElementById('auth-email').value.trim();
-  const pass = document.getElementById('auth-pass').value;
-  const err = document.getElementById('auth-error');
-  err.style.display = 'none';
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-  } catch(e) {
-    err.textContent = 'E-mail ou senha incorretos.';
-    err.style.display = 'block';
-  }
-};
-window.doLogout = async function() {
-  await signOut(auth);
-};
-
-// ── TOAST ──
-window.showToast = function(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-};
-
-// ── SERVIÇOS ──
-async function loadServicosBarbeiro() {
-  const snap = await getDocs(query(collection(db, 'servicos'), orderBy('nome')));
-  servicos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  renderServicosGrid('servicos-grid-barbeiro');
+async function carregarServicos(){
+  const snap=await getDocs(query(collection(db,'servicos'),orderBy('nome')));
+  servicos=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const g=document.getElementById('srv-grid');
+  if(!servicos.length){g.innerHTML='<p style="color:var(--text3);font-size:12px;grid-column:1/-1;padding:20px 0">Nenhum serviço cadastrado ainda.</p>';return;}
+  g.innerHTML=servicos.map(s=>`<div class="srv-btn" onclick="abrirRegistro('${s.id}')"><span class="srv-nome">${s.nome}</span><span class="srv-val">R$ ${s.valor}</span></div>`).join('');
 }
 
-async function loadServicosAdmin() {
-  const snap = await getDocs(query(collection(db, 'servicos'), orderBy('nome')));
-  servicos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  renderServicosGrid('servicos-grid-barbeiro');
-  renderServicosGrid('servicos-grid-admin');
+async function carregarResumo(){
+  const q=query(collection(db,'registros'),where('barbeiroId','==',cu.uid),where('data','==',hoje()),orderBy('timestamp','desc'));
+  const snap=await getDocs(q);
+  const regs=snap.docs.map(d=>d.data());
+  const bruto=regs.reduce((a,r)=>a+r.valorFinal,0);
+  const pct=ud.porcentagem||0;
+  document.getElementById('ds-bruto').textContent=fmt(bruto);
+  document.getElementById('ds-liq').textContent=fmt(bruto*pct/100);
+  document.getElementById('ds-qt').textContent=regs.length;
+  document.getElementById('ds-desc').textContent=fmt(regs.reduce((a,r)=>a+(r.desconto||0),0));
 }
 
-function renderServicosGrid(gridId) {
-  const grid = document.getElementById(gridId);
-  if (!grid) return;
-  if (!servicos.length) {
-    grid.innerHTML = '<p style="color:var(--text-muted);font-size:13px;grid-column:1/-1">Nenhum serviço cadastrado ainda. Peça ao admin para adicionar.</p>';
-    return;
-  }
-  grid.innerHTML = servicos.map(s => `
-    <div class="servico-btn" onclick="openModalRegistro('${s.id}','${gridId}')">
-      <span class="s-nome">${s.nome}</span>
-      <span class="s-valor">R$ ${s.valor}</span>
-    </div>
-  `).join('');
-}
-
-// ── MODAL REGISTRO ──
-window.openModalRegistro = function(servicoId, gridOrigin) {
-  const s = servicos.find(x => x.id === servicoId);
-  if (!s) return;
-  selectedServico = s;
-  selectedPgto = null;
-  descontoOpen = false;
-  descType = 'reais';
-  document.getElementById('modal-servico-nome').textContent = s.nome;
-  document.getElementById('modal-servico-valor').textContent = `R$ ${s.valor}`;
-  document.getElementById('valor-final-display').textContent = `R$ ${s.valor}`;
-  document.getElementById('desc-valor').value = '';
-  document.getElementById('desconto-fields').classList.remove('open');
-  document.getElementById('desconto-icon').textContent = '+';
-  document.getElementById('btn-confirmar-registro').disabled = true;
-  document.querySelectorAll('.pgto-btn').forEach(b => b.classList.remove('selected'));
-  // Armazenar se é admin próprio
-  window._registroIsAdmin = gridOrigin === 'servicos-grid-admin';
-  document.getElementById('modal-registro').classList.add('open');
-};
-
-window.closeModalRegistro = function() {
-  document.getElementById('modal-registro').classList.remove('open');
-};
-
-window.selectPgto = function(pgto, el) {
-  selectedPgto = pgto;
-  document.querySelectorAll('.pgto-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('btn-confirmar-registro').disabled = false;
-};
-
-window.toggleDesconto = function() {
-  descontoOpen = !descontoOpen;
-  document.getElementById('desconto-fields').classList.toggle('open', descontoOpen);
-  document.getElementById('desconto-icon').textContent = descontoOpen ? '−' : '+';
-  if (!descontoOpen) { document.getElementById('desc-valor').value = ''; updateValorFinal(); }
-};
-
-window.setDescType = function(type) {
-  descType = type;
-  document.getElementById('desc-reais-btn').classList.toggle('active', type === 'reais');
-  document.getElementById('desc-pct-btn').classList.toggle('active', type === 'pct');
-  document.getElementById('desc-label').textContent = type === 'reais' ? 'Valor do Desconto (R$)' : 'Desconto (%)';
-  updateValorFinal();
-};
-
-window.updateValorFinal = function() {
-  if (!selectedServico) return;
-  const base = parseFloat(selectedServico.valor) || 0;
-  const descInput = parseFloat(document.getElementById('desc-valor').value) || 0;
-  let desconto = 0;
-  if (descontoOpen && descInput > 0) {
-    desconto = descType === 'pct' ? base * (descInput / 100) : descInput;
-    desconto = Math.min(desconto, base);
-  }
-  const final = base - desconto;
-  document.getElementById('valor-final-display').textContent = `R$ ${final.toFixed(2).replace('.',',')}`;
-};
-
-window.confirmarRegistro = async function() {
-  if (!selectedServico || !selectedPgto) return;
-  const base = parseFloat(selectedServico.valor) || 0;
-  const descInput = parseFloat(document.getElementById('desc-valor').value) || 0;
-  let desconto = 0;
-  if (descontoOpen && descInput > 0) {
-    desconto = descType === 'pct' ? base * (descInput / 100) : descInput;
-    desconto = Math.min(desconto, base);
-  }
-  const valorFinal = parseFloat((base - desconto).toFixed(2));
-
-  const isAdmin = window._registroIsAdmin || currentUserData.role === 'admin' && !window._registroIsAdmin === false;
-  const uid = currentUser.uid;
-  const userData = currentUserData;
-
-  const registro = {
-    barbeiroId: uid,
-    barbeiroNome: userData.nome,
-    sede: userData.sede || (userData.role === 'admin' ? 'William' : 'Sem sede'),
-    servicoId: selectedServico.id,
-    servicoNome: selectedServico.nome,
-    valorTabela: base,
-    desconto: desconto,
-    valorFinal: valorFinal,
-    pagamento: selectedPgto,
-    porcentagem: userData.role === 'admin' ? 100 : (userData.porcentagem || 100),
-    isOwnerCut: userData.role === 'admin',
-    timestamp: Timestamp.now(),
-    data: new Date().toISOString().split('T')[0]
-  };
-
-  await addDoc(collection(db, 'registros'), registro);
-  closeModalRegistro();
-  showToast(`✅ ${selectedServico.nome} — R$ ${valorFinal.toFixed(2).replace('.',',')} registrado!`);
-
-  if (currentUserData.role === 'admin') loadHistoricoAdmin();
-  else { loadHistoricoBarbeiro(); }
-};
-
-// ── HISTÓRICO BARBEIRO ──
-async function loadHistoricoBarbeiro() {
-  const hoje = new Date().toISOString().split('T')[0];
-  const q = query(collection(db, 'registros'), where('barbeiroId','==',currentUser.uid), where('data','==',hoje), orderBy('timestamp','desc'));
-  const snap = await getDocs(q);
-  const registros = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  renderHistorico('historico-barbeiro', registros, true);
-  calcStatsBarbeiro(registros);
-}
-
-function calcStatsBarbeiro(registros) {
-  const bruto = registros.reduce((a,r) => a + r.valorFinal, 0);
-  const pct = currentUserData.porcentagem || 100;
-  const liquido = bruto * (pct / 100);
-  const desc = registros.reduce((a,r) => a + r.desconto, 0);
-  document.getElementById('stat-bruto-b').textContent = `R$ ${bruto.toFixed(2).replace('.',',')}`;
-  document.getElementById('stat-liquido-b').textContent = `R$ ${liquido.toFixed(2).replace('.',',')}`;
-  document.getElementById('stat-cortes-b').textContent = registros.length;
-  document.getElementById('stat-desc-b').textContent = `R$ ${desc.toFixed(2).replace('.',',')}`;
-}
-
-function renderHistorico(containerId, registros, canDelete = false) {
-  const el = document.getElementById(containerId);
-  if (!registros.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">✂️</div>Nenhum serviço ainda</div>';
-    return;
-  }
-  el.innerHTML = registros.map(r => {
-    const hora = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) : '--:--';
-    const temDesc = r.desconto > 0;
-    const badgeClass = {'Pix':'badge-pix','Dinheiro':'badge-dinheiro','Crédito':'badge-credito','Débito':'badge-debito'}[r.pagamento] || '';
-    const deleteBtn = canDelete && r.id ? `<button class="btn-del-reg" onclick="deleteRegistro('${r.id}')">Apagar</button>` : '';
-    return `
-      <div class="historico-item">
-        <div class="historico-main">
-          <div class="h-info">
-            <div class="h-nome">${r.servicoNome}</div>
-            <div class="h-meta">${hora} &nbsp;·&nbsp; <span class="badge ${badgeClass}">${r.pagamento}</span>${temDesc ? ` &nbsp;·&nbsp; <span style="color:var(--red);font-size:11px">-R$ ${r.desconto.toFixed(2).replace('.',',')}</span>` : ''}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="h-valor ${temDesc?'desconto':''}">R$ ${r.valorFinal.toFixed(2).replace('.',',')}</div>
-            ${deleteBtn}
-          </div>
-        </div>
-      </div>`;
+async function carregarHistorico(){
+  const q=query(collection(db,'registros'),where('barbeiroId','==',cu.uid),where('data','==',hoje()),orderBy('timestamp','desc'));
+  const snap=await getDocs(q);
+  const regs=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const el=document.getElementById('hist-list');
+  if(!regs.length){el.innerHTML='<div class="empty"><div class="empty-ico">✂️</div>Nenhum serviço hoje</div>';return;}
+  const tc={Pix:'tag-pix',Dinheiro:'tag-din','Crédito':'tag-cred','Débito':'tag-deb'};
+  el.innerHTML=regs.map(r=>{
+    const hora=r.timestamp?.toDate?r.timestamp.toDate().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'--:--';
+    const td=r.desconto>0;
+    return `<div class="hist-item"><div style="flex:1;min-width:0"><div class="hist-srv">${r.servicoNome}</div><div class="hist-meta">${hora} <span class="tag ${tc[r.pagamento]||''}">${r.pagamento}</span>${td?` <span style="color:var(--red);font-size:10px">-${fmt(r.desconto)}</span>`:''} <span class="tag tag-pago">Pago</span></div></div><div class="hist-right"><div class="hist-val ${td?'disc':''}">${fmt(r.valorFinal)}</div><button class="btn-del" onclick="deletarRegistro('${r.id}')"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button></div></div>`;
   }).join('');
+  icons();
 }
 
-
-window.deleteRegistro = async function(id) {
-  if (!id) return;
-  if (!confirm('Apagar este corte já registrado? Esta ação não pode ser desfeita.')) return;
-  try {
-    await deleteDoc(doc(db, 'registros', id));
-    showToast('🗑️ Corte apagado com sucesso');
-    if (currentUserData.role === 'admin') loadHistoricoAdmin();
-    else loadHistoricoBarbeiro();
-  } catch (e) {
-    showToast('Erro ao apagar corte. Tente novamente.');
-  }
+window.deletarRegistro=async id=>{
+  if(!confirm('Apagar este registro?'))return;
+  await deleteDoc(doc(db,'registros',id));
+  toast('🗑️ Registro apagado');carregarResumo();carregarHistorico();
 };
 
-// ── HISTÓRICO ADMIN PRÓPRIO ──
-async function loadHistoricoAdmin() {
-  const hoje = new Date().toISOString().split('T')[0];
-  const q = query(collection(db, 'registros'), where('barbeiroId','==',currentUser.uid), where('data','==',hoje), orderBy('timestamp','desc'));
-  const snap = await getDocs(q);
-  const registros = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  renderHistorico('historico-admin-proprio', registros, true);
-  const bruto = registros.reduce((a,r) => a + r.valorFinal, 0);
-  document.getElementById('stat-admin-bruto').textContent = `R$ ${bruto.toFixed(2).replace('.',',')}`;
-  document.getElementById('stat-admin-qtd').textContent = registros.length;
-}
+window.abrirRegistro=id=>{
+  selSrv=servicos.find(s=>s.id===id);if(!selSrv)return;
+  selPgtoVal=null;descOpen=false;descTipoVal='reais';
+  document.getElementById('reg-nome').textContent=selSrv.nome;
+  document.getElementById('reg-val').textContent=`R$ ${selSrv.valor}`;
+  document.getElementById('vf-val').textContent=`R$ ${selSrv.valor}`;
+  document.getElementById('desc-val').value='';
+  document.getElementById('desc-body').classList.remove('open');
+  document.getElementById('desc-ico').style.transform='';
+  document.getElementById('btn-confirm').disabled=true;
+  document.querySelectorAll('.pgto-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('modal-reg').classList.add('open');icons();
+};
+window.selPgto=(p,el)=>{selPgtoVal=p;document.querySelectorAll('.pgto-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');document.getElementById('btn-confirm').disabled=false;};
+window.toggleDesc=()=>{descOpen=!descOpen;document.getElementById('desc-body').classList.toggle('open',descOpen);document.getElementById('desc-ico').style.transform=descOpen?'rotate(45deg)':'';if(!descOpen){document.getElementById('desc-val').value='';updFinal();}};
+window.setDescTipo=t=>{descTipoVal=t;document.getElementById('btn-reais').classList.toggle('active',t==='reais');document.getElementById('btn-pct').classList.toggle('active',t==='pct');updFinal();};
+window.updFinal=()=>{if(!selSrv)return;const base=parseFloat(selSrv.valor)||0,inp=parseFloat(document.getElementById('desc-val').value)||0;let desc=0;if(descOpen&&inp>0)desc=Math.min(descTipoVal==='pct'?base*inp/100:inp,base);document.getElementById('vf-val').textContent=fmt(base-desc);};
 
-// ── BARBEIROS ADMIN ──
-async function loadBarbeirosAdmin() {
-  const snap = await getDocs(collection(db, 'usuarios'));
-  barbeiros = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-}
-
-function renderBarbeirosAdmin() {
-  const list = document.getElementById('barbeiros-list');
-  const barbs = barbeiros.filter(b => b.role !== 'admin');
-  if (!barbs.length) {
-    list.innerHTML = '<p style="color:var(--text-muted);font-size:13px;grid-column:1/-1">Nenhum barbeiro cadastrado.</p>';
-    return;
-  }
-  list.innerHTML = barbs.map(b => `
-    <div class="admin-item">
-      <div class="admin-item-name">${b.nome}</div>
-      <div class="admin-item-meta">${b.sede || '—'} &nbsp;·&nbsp; ${b.porcentagem || 0}%</div>
-      <div class="admin-item-actions">
-        <button class="btn-sm btn-edit" onclick="openModalBarbeiro('${b.id}')">Editar</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-window.openModalBarbeiro = async function(id) {
-  document.getElementById('barbeiro-edit-id').value = id || '';
-  document.getElementById('modal-barbeiro-title').textContent = id ? 'EDITAR BARBEIRO' : 'NOVO BARBEIRO';
-  document.getElementById('barb-senha-field').style.display = id ? 'none' : 'flex';
-  if (id) {
-    const b = barbeiros.find(x => x.id === id);
-    document.getElementById('barb-nome').value = b.nome || '';
-    document.getElementById('barb-email').value = b.email || '';
-    document.getElementById('barb-sede').value = b.sede || 'Sede 1';
-    document.getElementById('barb-pct').value = b.porcentagem || '';
-  } else {
-    document.getElementById('barb-nome').value = '';
-    document.getElementById('barb-email').value = '';
-    document.getElementById('barb-senha').value = '';
-    document.getElementById('barb-sede').value = 'Sede 1';
-    document.getElementById('barb-pct').value = '';
-  }
-  document.getElementById('modal-barbeiro').classList.add('open');
+window.confirmar=async()=>{
+  if(!selSrv||!selPgtoVal)return;
+  const base=parseFloat(selSrv.valor)||0,inp=parseFloat(document.getElementById('desc-val').value)||0;
+  let desc=0;if(descOpen&&inp>0)desc=Math.min(descTipoVal==='pct'?base*inp/100:inp,base);
+  const vf=parseFloat((base-desc).toFixed(2));
+  await addDoc(collection(db,'registros'),{barbeiroId:cu.uid,barbeiroNome:ud.nome,sede:ud.sede||'Sem sede',servicoId:selSrv.id,servicoNome:selSrv.nome,valorTabela:base,desconto:desc,valorFinal:vf,pagamento:selPgtoVal,porcentagem:ud.porcentagem||0,isOwnerCut:false,timestamp:Timestamp.now(),data:hoje()});
+  fecharModal();toast(`✅ ${selSrv.nome} · ${fmt(vf)}`);carregarResumo();
 };
 
-window.salvarBarbeiro = async function() {
-  const id = document.getElementById('barbeiro-edit-id').value;
-  const nome = document.getElementById('barb-nome').value.trim();
-  const email = document.getElementById('barb-email').value.trim();
-  const sede = document.getElementById('barb-sede').value;
-  const pct = parseFloat(document.getElementById('barb-pct').value) || 0;
-  if (!nome || !email) return showToast('Preencha nome e e-mail');
-
-  if (id) {
-    await updateDoc(doc(db, 'usuarios', id), { nome, email, sede, porcentagem: pct });
-    showToast('✅ Barbeiro atualizado!');
-  } else {
-    const senha = document.getElementById('barb-senha').value;
-    if (!senha || senha.length < 6) return showToast('Senha mínimo 6 caracteres');
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, senha);
-      await setDoc(doc(db, 'usuarios', cred.user.uid), { nome, email, sede, porcentagem: pct, role: 'barbeiro' });
-      // Re-login como admin não é necessário pois createUser não muda sessão atual no Firebase v9+ somente se usar AdminSDK
-      // Aqui vai fazer login do barbeiro — precisa relogar o admin
-      showToast('✅ Barbeiro criado! Você será relogado.');
-      setTimeout(() => signOut(auth), 1500);
-    } catch(e) {
-      showToast('Erro: ' + e.message);
-      return;
-    }
-  }
-  await loadBarbeirosAdmin();
-  renderBarbeirosAdmin();
-  closeModal('modal-barbeiro');
-};
-
-// ── SERVIÇOS ADMIN ──
-function renderServicosAdmin() {
-  const list = document.getElementById('servicos-list');
-  if (!servicos.length) {
-    list.innerHTML = '<p style="color:var(--text-muted);font-size:13px;grid-column:1/-1">Nenhum serviço cadastrado.</p>';
-    return;
-  }
-  list.innerHTML = servicos.map(s => `
-    <div class="admin-item">
-      <div class="admin-item-name">${s.nome}</div>
-      <div class="admin-item-meta" style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold)">R$ ${s.valor}</div>
-      <div class="admin-item-actions">
-        <button class="btn-sm btn-edit" onclick="openModalServico('${s.id}')">Editar</button>
-        <button class="btn-sm btn-del" onclick="deletarServico('${s.id}')">Excluir</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-window.openModalServico = function(id) {
-  document.getElementById('servico-edit-id').value = id || '';
-  document.getElementById('modal-servico-title').textContent = id ? 'EDITAR SERVIÇO' : 'NOVO SERVIÇO';
-  if (id) {
-    const s = servicos.find(x => x.id === id);
-    document.getElementById('srv-nome').value = s.nome;
-    document.getElementById('srv-valor').value = s.valor;
-  } else {
-    document.getElementById('srv-nome').value = '';
-    document.getElementById('srv-valor').value = '';
-  }
-  document.getElementById('modal-servico').classList.add('open');
-};
-
-window.salvarServico = async function() {
-  const id = document.getElementById('servico-edit-id').value;
-  const nome = document.getElementById('srv-nome').value.trim();
-  const valor = parseFloat(document.getElementById('srv-valor').value);
-  if (!nome || isNaN(valor)) return showToast('Preencha nome e valor');
-
-  if (id) {
-    await updateDoc(doc(db, 'servicos', id), { nome, valor });
-  } else {
-    await addDoc(collection(db, 'servicos'), { nome, valor });
-  }
-  await loadServicosAdmin();
-  renderServicosGrid('servicos-grid-admin');
-  renderServicosAdmin();
-  closeModal('modal-servico');
-  showToast('✅ Serviço salvo!');
-};
-
-window.deletarServico = async function(id) {
-  if (!confirm('Excluir este serviço?')) return;
-  await deleteDoc(doc(db, 'servicos', id));
-  await loadServicosAdmin();
-  renderServicosGrid('servicos-grid-admin');
-  renderServicosAdmin();
-  showToast('🗑️ Serviço excluído');
-};
-
-// ── DASHBOARD ──
-window.loadDashboard = async function() {
-  const data = document.getElementById('dash-date').value;
-  if (!data) return;
-
-  const q = query(collection(db, 'registros'), where('data','==',data));
-  const snap = await getDocs(q);
-  const registros = snap.docs.map(d => d.data());
-
-  // por sede
-  const sede1 = registros.filter(r => r.sede === 'Sede 1');
-  const sede2 = registros.filter(r => r.sede === 'Sede 2');
-  const totalSede1 = sede1.reduce((a,r) => a+r.valorFinal, 0);
-  const totalSede2 = sede2.reduce((a,r) => a+r.valorFinal, 0);
-  document.getElementById('dash-sede1').textContent = `R$ ${totalSede1.toFixed(2).replace('.',',')}`;
-  document.getElementById('dash-sede2').textContent = `R$ ${totalSede2.toFixed(2).replace('.',',')}`;
-  document.getElementById('dash-sede1-qt').textContent = `${sede1.length} serviços`;
-  document.getElementById('dash-sede2-qt').textContent = `${sede2.length} serviços`;
-
-  // bolso william = soma das partes dele de cada barbeiro
-  let bolso = 0;
-  registros.forEach(r => {
-    const pct = r.porcentagem || 0;
-    bolso += r.isOwnerCut ? r.valorFinal : (r.valorFinal * ((100 - pct) / 100));
-  });
-  document.getElementById('dash-bolso').textContent = `R$ ${bolso.toFixed(2).replace('.',',')}`;
-
-  // por barbeiro
-  const porBarbeiro = {};
-  registros.forEach(r => {
-    if (!porBarbeiro[r.barbeiroId]) porBarbeiro[r.barbeiroId] = { nome: r.barbeiroNome, sede: r.sede, total: 0, qt: 0, pct: r.porcentagem || 0 };
-    porBarbeiro[r.barbeiroId].total += r.valorFinal;
-    porBarbeiro[r.barbeiroId].qt++;
-  });
-
-  const list = document.getElementById('dash-barbeiros-list');
-  const entries = Object.values(porBarbeiro);
-  if (!entries.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Nenhum serviço nesta data</div>'; return; }
-  list.innerHTML = entries.sort((a,b) => b.total - a.total).map(b => {
-    const liquido = b.pct === 100 && b.nome?.toLowerCase().includes('william') ? b.total : (b.total * (b.pct / 100));
-    const william = b.total - liquido;
-    return `
-      <div class="relatorio-barbeiro">
-        <div class="rb-header">
-          <div><div class="rb-nome">${b.nome}</div><div class="rb-sede">${b.sede}</div></div>
-          <div class="rb-total">R$ ${b.total.toFixed(2).replace('.',',')}</div>
-        </div>
-        <div class="rb-breakdown">
-          <div class="rb-item">${b.qt} serviços</div>
-          <div class="rb-item">Barbeiro: <span>R$ ${liquido.toFixed(2).replace('.',',')}</span></div>
-          <div class="rb-item">William: <span>R$ ${william.toFixed(2).replace('.',',')}</span></div>
-        </div>
-      </div>`;
-  }).join('');
-};
-
-// ── RELATÓRIOS ──
-window.setRelView = function(view, el) {
-  relView = view;
-  document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  loadRelatorio();
-};
-
-window.loadRelatorio = async function() {
-  const inicio = document.getElementById('rel-inicio').value;
-  const fim = document.getElementById('rel-fim').value;
-  if (!inicio || !fim) return;
-
-  const q = query(collection(db, 'registros'), where('data','>=',inicio), where('data','<=',fim), orderBy('data','desc'));
-  const snap = await getDocs(q);
-  let registros = snap.docs.map(d => d.data());
-
-  if (relView === 'sede1') registros = registros.filter(r => r.sede === 'Sede 1');
-  if (relView === 'sede2') registros = registros.filter(r => r.sede === 'Sede 2');
-
-  const porBarbeiro = {};
-  registros.forEach(r => {
-    if (!porBarbeiro[r.barbeiroId]) porBarbeiro[r.barbeiroId] = { nome: r.barbeiroNome, sede: r.sede, total: 0, qt: 0, pct: r.porcentagem || 0, descontos: 0 };
-    porBarbeiro[r.barbeiroId].total += r.valorFinal;
-    porBarbeiro[r.barbeiroId].qt++;
-    porBarbeiro[r.barbeiroId].descontos += r.desconto || 0;
-  });
-
-  const totalGeral = registros.reduce((a,r) => a+r.valorFinal, 0);
-  let bolsoWilliam = 0;
-  registros.forEach(r => { bolsoWilliam += r.isOwnerCut ? r.valorFinal : (r.valorFinal * ((100 - (r.porcentagem||0)) / 100)); });
-
-  const content = document.getElementById('relatorio-content');
-  const entries = Object.values(porBarbeiro);
-
-  let html = `
-    <div class="bolso-card" style="margin-bottom:16px">
-      <div><label>💰 Total do Período</label></div>
-      <div class="bolso-valor" style="font-size:36px">R$ ${totalGeral.toFixed(2).replace('.',',')}</div>
-    </div>
-    <div class="bolso-card" style="background:rgba(82,192,122,0.05);border-color:rgba(82,192,122,0.3);margin-bottom:16px">
-      <div><label style="color:var(--green)">💼 No Bolso do William</label></div>
-      <div class="bolso-valor" style="font-size:36px;color:var(--green)">R$ ${bolsoWilliam.toFixed(2).replace('.',',')}</div>
-    </div>
-  `;
-
-  if (!entries.length) {
-    html += '<div class="empty"><div class="empty-icon">📊</div>Nenhum registro no período</div>';
-  } else {
-    html += entries.sort((a,b) => b.total - a.total).map(b => {
-      const liquido = b.pct === 100 && b.nome?.toLowerCase().includes('william') ? b.total : (b.total * (b.pct / 100));
-      const william = b.total - liquido;
-      return `
-        <div class="relatorio-barbeiro">
-          <div class="rb-header">
-            <div><div class="rb-nome">${b.nome}</div><div class="rb-sede">${b.sede} · ${b.pct}%</div></div>
-            <div class="rb-total">R$ ${b.total.toFixed(2).replace('.',',')}</div>
-          </div>
-          <div class="rb-breakdown">
-            <div class="rb-item">${b.qt} serviços</div>
-            <div class="rb-item">Recebe: <span style="color:var(--green)">R$ ${liquido.toFixed(2).replace('.',',')}</span></div>
-            <div class="rb-item">→ William: <span style="color:var(--gold)">R$ ${william.toFixed(2).replace('.',',')}</span></div>
-            <div class="rb-item">Descontos: <span style="color:var(--red)">R$ ${b.descontos.toFixed(2).replace('.',',')}</span></div>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  content.innerHTML = html;
-};
-
-// ── HELPERS ──
-window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
-window.setToday = function(inputId) {
-  document.getElementById(inputId).value = new Date().toISOString().split('T')[0];
-};
-function setRelDates() {
-  const hoje = new Date().toISOString().split('T')[0];
-  const primeiroDia = new Date(); primeiroDia.setDate(1);
-  document.getElementById('rel-inicio').value = primeiroDia.toISOString().split('T')[0];
-  document.getElementById('rel-fim').value = hoje;
-}
-
-// Fechar modal ao clicar fora
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
-});
+document.getElementById('modal-reg').addEventListener('click',e=>{if(e.target===document.getElementById('modal-reg'))fecharModal();});
 </script>
 </body>
 </html>
