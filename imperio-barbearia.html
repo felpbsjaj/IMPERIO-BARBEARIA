@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Império Barbearia</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
   :root {
     --bg: #0a0a0a;
@@ -36,6 +37,7 @@
   /* ── AUTH ── */
   #auth-screen { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 24px; flex-direction: column; gap: 32px; }
   .auth-logo { text-align: center; }
+  .auth-logo-img { width: 96px; height: 96px; object-fit: contain; filter: drop-shadow(0 0 20px rgba(201,168,76,.45)); margin-bottom: 10px; }
   .auth-logo h1 { font-family: 'Bebas Neue', sans-serif; font-size: 56px; letter-spacing: 6px; color: var(--gold); line-height: 1; }
   .auth-logo p { color: var(--text-muted); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
   .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; }
@@ -56,7 +58,8 @@
 
   /* ── HEADER ── */
   .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .header-logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--gold); }
+  .header-logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--gold); display:flex; align-items:center; gap:8px; }
+  .header-logo img { width:30px; height:30px; object-fit:contain; }
   .header-right { display: flex; align-items: center; gap: 12px; }
   .header-user { font-size: 13px; color: var(--text-muted); }
   .btn-icon { background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text-muted); cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.2s; }
@@ -184,6 +187,9 @@
   .rb-item span { color: var(--text-dim); font-weight: 500; }
 
   .date-filter { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .quick-filters{display:flex;gap:6px;}
+  .qf-btn{padding:8px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:12px;}
+  .qf-btn.active{background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.5);}
   .date-filter input[type=date] { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text); font-family: inherit; font-size: 14px; outline: none; }
   .date-filter input[type=date]:focus { border-color: var(--gold); }
   .filter-btn { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius-sm); padding: 8px 16px; cursor: pointer; font-size: 13px; font-family: inherit; }
@@ -217,6 +223,7 @@
 
 <!-- LOADING -->
 <div id="loading">
+  <img src="LOGO/barber_logo.png" alt="Império" class="auth-logo-img">
   <h1>IMPÉRIO</h1>
   <div class="spinner"></div>
   <p>Carregando...</p>
@@ -225,6 +232,7 @@
 <!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-logo">
+    <img src="LOGO/barber_logo.png" alt="Império" class="auth-logo-img">
     <h1>IMPÉRIO</h1>
     <p>Barbearia · Sistema</p>
   </div>
@@ -246,7 +254,7 @@
 <!-- APP -->
 <div id="app">
   <div class="header">
-    <span class="header-logo">IMPÉRIO</span>
+    <span class="header-logo"><img src="LOGO/barber_logo.png" alt="Império">IMPÉRIO</span>
     <div class="header-right">
       <span class="header-user" id="header-user-name"></span>
       <button class="btn-icon" onclick="doLogout()">Sair</button>
@@ -333,9 +341,13 @@
   <!-- DASHBOARD -->
   <div id="tab-dashboard" class="content hidden">
     <div class="date-filter">
+      <div class="quick-filters">
+        <button class="qf-btn active" onclick="setDashFilter('hoje', this)">Hoje</button>
+        <button class="qf-btn" onclick="setDashFilter('7d', this)">7 dias</button>
+        <button class="qf-btn" onclick="setDashFilter('30d', this)">30 dias</button>
+      </div>
       <input type="date" id="dash-date">
       <button class="filter-btn" onclick="loadDashboard()">Filtrar</button>
-      <button class="filter-btn" onclick="setToday('dash-date'); loadDashboard()">Hoje</button>
     </div>
 
     <div class="bolso-card">
@@ -532,6 +544,16 @@ let descType = 'reais';
 let servicos = [];
 let barbeiros = [];
 let relView = 'geral';
+let dashFilter = 'hoje';
+const fmtDateInput = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const todayLocal = () => fmtDateInput(new Date());
+const getDashRange = (filter, endDate=todayLocal()) => {
+  const end = new Date(`${endDate}T00:00:00`);
+  const start = new Date(end);
+  if (filter === '30d') start.setDate(start.getDate() - 29);
+  else if (filter === '7d') start.setDate(start.getDate() - 6);
+  return { start: fmtDateInput(start), end: fmtDateInput(end) };
+};
 
 // ── AUTH STATE ──
 onAuthStateChanged(auth, async (user) => {
@@ -742,7 +764,7 @@ window.confirmarRegistro = async function() {
     porcentagem: userData.role === 'admin' ? 100 : (userData.porcentagem || 100),
     isOwnerCut: userData.role === 'admin',
     timestamp: Timestamp.now(),
-    data: new Date().toISOString().split('T')[0]
+    data: todayLocal()
   };
 
   await addDoc(collection(db, 'registros'), registro);
@@ -755,7 +777,7 @@ window.confirmarRegistro = async function() {
 
 // ── HISTÓRICO BARBEIRO ──
 async function loadHistoricoBarbeiro() {
-  const hoje = new Date().toISOString().split('T')[0];
+  const hoje = todayLocal();
   const q = query(collection(db, 'registros'), where('barbeiroId','==',currentUser.uid), where('data','==',hoje), orderBy('timestamp','desc'));
   const snap = await getDocs(q);
   const registros = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -817,7 +839,7 @@ window.deleteRegistro = async function(id) {
 
 // ── HISTÓRICO ADMIN PRÓPRIO ──
 async function loadHistoricoAdmin() {
-  const hoje = new Date().toISOString().split('T')[0];
+  const hoje = todayLocal();
   const q = query(collection(db, 'registros'), where('barbeiroId','==',currentUser.uid), where('data','==',hoje), orderBy('timestamp','desc'));
   const snap = await getDocs(q);
   const registros = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -963,11 +985,19 @@ window.deletarServico = async function(id) {
 };
 
 // ── DASHBOARD ──
-window.loadDashboard = async function() {
-  const data = document.getElementById('dash-date').value;
-  if (!data) return;
+window.setDashFilter = function(filter, el) {
+  dashFilter = filter;
+  document.querySelectorAll('.qf-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  setToday('dash-date');
+  loadDashboard();
+};
 
-  const q = query(collection(db, 'registros'), where('data','==',data));
+window.loadDashboard = async function() {
+  const data = document.getElementById('dash-date').value || todayLocal();
+  const { start, end } = getDashRange(dashFilter, data);
+
+  const q = query(collection(db, 'registros'), where('data','>=',start), where('data','<=',end), orderBy('data','desc'));
   const snap = await getDocs(q);
   const registros = snap.docs.map(d => d.data());
 
@@ -978,7 +1008,7 @@ window.loadDashboard = async function() {
   const totalSede2 = sede2.reduce((a,r) => a+r.valorFinal, 0);
   document.getElementById('dash-sede1').textContent = `R$ ${totalSede1.toFixed(2).replace('.',',')}`;
   document.getElementById('dash-sede2').textContent = `R$ ${totalSede2.toFixed(2).replace('.',',')}`;
-  document.getElementById('dash-sede1-qt').textContent = `${sede1.length} serviços`;
+  document.getElementById('dash-sede1-qt').textContent = `${sede1.length} serviços · período ${start.split('-').reverse().join('/')} - ${end.split('-').reverse().join('/')}`;
   document.getElementById('dash-sede2-qt').textContent = `${sede2.length} serviços`;
 
   // bolso william = soma das partes dele de cada barbeiro
@@ -999,7 +1029,7 @@ window.loadDashboard = async function() {
 
   const list = document.getElementById('dash-barbeiros-list');
   const entries = Object.values(porBarbeiro);
-  if (!entries.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Nenhum serviço nesta data</div>'; return; }
+  if (!entries.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Nenhum serviço no período</div>'; return; }
   list.innerHTML = entries.sort((a,b) => b.total - a.total).map(b => {
     const liquido = b.pct === 100 && b.nome?.toLowerCase().includes('william') ? b.total : (b.total * (b.pct / 100));
     const william = b.total - liquido;
@@ -1092,12 +1122,12 @@ window.loadRelatorio = async function() {
 // ── HELPERS ──
 window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
 window.setToday = function(inputId) {
-  document.getElementById(inputId).value = new Date().toISOString().split('T')[0];
+  document.getElementById(inputId).value = todayLocal();
 };
 function setRelDates() {
-  const hoje = new Date().toISOString().split('T')[0];
+  const hoje = todayLocal();
   const primeiroDia = new Date(); primeiroDia.setDate(1);
-  document.getElementById('rel-inicio').value = primeiroDia.toISOString().split('T')[0];
+  document.getElementById('rel-inicio').value = fmtDateInput(primeiroDia);
   document.getElementById('rel-fim').value = hoje;
 }
 
