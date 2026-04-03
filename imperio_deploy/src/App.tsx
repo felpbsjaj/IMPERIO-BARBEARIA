@@ -411,7 +411,7 @@ export default function App() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
-        <img src="LOGO/barber_logo.png" alt="Império">
+        <img src="LOGO/barber_logo.png" alt="Império" />
         <div className="text-zinc-600 text-[10px] uppercase tracking-[0.3em]">Carregando...</div>
       </div>
     );
@@ -430,10 +430,11 @@ export default function App() {
         >
           <div className="text-center mb-10">
             <div className="flex justify-center mb-6">
-              <img 
-                src="LOGO/barber_logo.png" alt="Império">
+              <img
+                src="LOGO/barber_logo.png"
+                alt="Império"
                 className="w-28 h-28 object-contain drop-shadow-[0_0_40px_rgba(245,158,11,0.6)]"
-                style={{animation: 'float 4s ease-in-out infinite'}}
+                style={{ animation: 'float 4s ease-in-out infinite' }}
               />
             </div>
             <h1 className="text-5xl font-black text-amber-500 tracking-tighter mb-2">IMPÉRIO</h1>
@@ -494,8 +495,9 @@ export default function App() {
       {/* Sidebar */}
       <aside className="w-72 border-r border-white/5 flex flex-col sticky top-0 h-screen bg-zinc-950/50 backdrop-blur-xl">
         <div className="p-6 mb-2 flex items-center gap-3">
-          <img 
-            src="LOGO/barber_logo.png" alt="Império">
+          <img
+            src="LOGO/barber_logo.png"
+            alt="Império"
             className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.4)] flex-shrink-0"
           />
           <div>
